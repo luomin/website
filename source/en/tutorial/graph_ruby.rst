@@ -1,13 +1,14 @@
-Ruby
+﻿Ruby
 =================
 
-ここではRuby版のGraphサンプルプログラムの解説をします。
+Here we explain the sample program of Graph in Ruby.
 
 --------------------------------
-ソースコード
+Source_code
 --------------------------------
 
-このサンプルプログラムでは、学習アルゴリズム等の設定をするtrain_route.json、グラフ作成を行うcreate_graph.rb、最短経路を計算するsearch_route.rbを利用します。以下にソースコードを記載します。
+In this sample program, we will explain 1) how to configure the learning-algorithms that used by Jubatus, with the example file 'train_route.json'; 2) how to create the graph with 'create_graph.rb', and how to learn the training data and calculate the shortest path with the example file ‘search_route.rb’. Here are the source codes.
+
 
 **train_route.json**
 
@@ -53,7 +54,7 @@ Ruby
  025 : def get_station_join(line_cd)
  026 :   join_list = []
  027 :   
- 028 :   # プロキシ設定
+ 028 :   # Set the proxy
  029 :   pxy = "http://proxyHost:proxyPort"
  030 :   usr = "user"
  031 :   pss = "password"
@@ -78,7 +79,7 @@ Ruby
  050 :   return join_list
  051 : end
  052 : 
- 053 : # 3. グラフの作成
+ 053 : # 3. generate graph
  054 : def create_graph(c, join_list)
  055 :   for join in join_list do
  056 :     s1_node_id = add_station(c, join.station1)
@@ -105,7 +106,7 @@ Ruby
  077 :   return node_id
  078 : end
  079 : 
- 080 : # 4. 駅IDの表示
+ 080 : # 4. Show the Station ID
  081 : def print_stations()
  082 :   @stations.to_a.sort{|a, b|
  083 :     (b[1] <=> a[1]) * 2 + (a[0] <=> b[0])
@@ -116,18 +117,18 @@ Ruby
  088 : end
  089 : 
  090 : 
- 091 : # 1.Jubatus Serverへの接続設定
+ 091 : # 1. Connect to Jubatus Server
  092 : c = Jubatus::Graph::Client::Graph.new($host, $port)
  093 : 
- 094 : # 2. プリセットクエリーを登録
+ 094 : # 2. Regist preset query
  095 : pq = Jubatus::Graph::Preset_query.new([], [])
  096 : c.add_shortest_path_query($name, pq)
  097 : 
- 098 : # 3. グラフの作成
+ 098 : # 3. Create graph
  099 : create_graph(c, get_station_join(11302))
  100 : create_graph(c, get_station_join(11312))
  101 : 
- 102 : # 4. 駅IDの表示
+ 102 : # 4. Show the station ID
  103 : print ("=== Station IDs ===\n")
  104 : print_stations()
 
@@ -154,17 +155,17 @@ Ruby
  13 : require 'jubatus/graph/types'
  14 : 
  15 : def search_route(from_id, to_id)
- 16 :   # 1. Jubatus Serverへの接続設定
+ 16 :   # 1. Connect to Jubatus Server
  17 :   c = Jubatus::Graph::Client::Graph.new($host, $port)
  18 :   
- 19 :   # 2. クエリーの準備
+ 19 :   # 2. Prepare query
  20 :   pq = Jubatus::Graph::Preset_query.new([], [])
  21 :   spreq = Jubatus::Graph::Shortest_path_query.new(from_id, to_id, 100, pq)
  22 : 
- 23 :   # 3. 最短経路を計算
+ 23 :   # 3. Calculate the shortest path
  24 :   stations = c.get_shortest_path($name, spreq)
  25 : 
- 26 :   # 4. 結果の表示
+ 26 :   # 4. Show the result
  27 :   print ("Pseudo-Shortest Path (hops) from " + from_id + " to " + to_id + "\n")
  28 :   stations.each {|station|
  29 :     node = c.get_node($name, station)
@@ -185,62 +186,57 @@ Ruby
 
 
 --------------------------------
-解説
+Explanation
 --------------------------------
 
-**train_route.json**
-
-設定は単体のJSONで与えられます。JSONの各フィールドは以下のとおりです。
+The configuration information is given by the JSON unit. Here is the meaning of each JSON filed.
 
  * method
  
-  グラフ解析に使用するアルゴリズムを指定します。
-  ここでは、インデックスのないグラフを利用するための "graph_wo_index" を指定します。
-  
+  Specify the algorithm used in graph mining. Currently, In this example, we use the graph without indexing, so we specify it "graph_wo_index".  
   
  * parameter
  
-  アルゴリズムに渡すパラメータを指定します。
-  ここでは2つのパラメータ、"damping_factor" と "landmark_num" を指定しています。
-  "damping_factor" は、PageRank の計算におけるdamping factorで、次数の異なるノードのスコアを調整します。大きくすると構造をよく反映したスコアを出す代わりに、スコアに極端な偏りが発生します。
-  "landmark_num" は最短パスにおいてランドマークの総数を指定します。大きくすると正確な最短パスに近づく代わりに、多くのメモリを消費します。
+  Specify the parameters to be passed to the algorithm.
+  We specify two parameter here, "damping_factor" and "landmark_num".
+  "damping_factor" is the damping factor used in PageRank calculation. It adjusts scores for nodes with differenct degrees.The bigger it is, the more sensitive to graph structure PageRank score is, but the larger biases it causes. In the original paper, 0.85 is good.
+  "landmark_num" is used for shortest path calculation. The bigger it is, more accurate value you can get, but the more memory is required. 
 
 
 **create_graph.rb**
 
- create_graph.rbでは、山手線と中央線の接続を表すグラフを作成します。Graphのクライアントプログラムは、jubatus.graphクラス内で定義されているGraphClientクラスを利用して作成します。サンプルで使用するメソッドは、以下の5つです。
 
- 1. Jubatus Serverへの接続設定
+ create_graph.rb generates a graph composed of Yamanote-line and Chuou-line. The client program in Graph will use the 'GraphClient' class defined in 'jubatus.graph'. Here are the 5 methods used in the sample.
 
-  Jubatus Serverへの接続を行います（92行目）。
-  Jubatus ServerのIPアドレス，Jubatus ServerのRPCポート番号を設定します。
-  
- 2. プリセットクエリーを登録
+ 1. Connect to Jubatus Server
 
-  最短経路を計算するために、クエリーをあらかじめadd_shortest_path_queryメソッドで登録しておく必要があります。
-  そのためのクエリーを作成します(95行目)。
-  add_shortest_path_queryメソッドで作成したクエリーを登録します(96行目)。
-  
- 3. グラフの作成
+  Connect to Jubatus Server (Row 92).
+  Setting the IP addr., RPC port of Jubatus Server.
 
-  山手線と中央線の接続を表すグラフを作成します。
-  ここでは、create_graphメソッドを呼び出します(99, 100行目)。
-  create_graphメソッドの第1引数は 1. で作成したクライアントです。
-  第2引数には get_station_joinメソッドの戻り値を指定します。
+ 2. Regist the preset query
   
-  get_station_joinメソッドでは接続する2駅を組み合わせたリストを作成します。
-  駅情報をWEB上にあるXMLファイルから取得します(28-49行目)
-  取得したXMLファイルの構造は下記のようになっています。
-  今回のプログラムでは駅間の距離などは考慮せず、駅の接続情報のみ用いるため、下記XMLファイルの<station_name1>、<station_name2>の値しかプログラム中では扱いません。
+  The 'add_shortest_path_query' method must be registered beforehand. Therefore, the 'PresetQuery' is made (Row 95) and registed by 'add_shortest_path_query' (Row 96).
   
+ 3. Generate the graph
+
+  Make the graph composed of Yamanote-line and Chuou-line.
+  Firstly, the private method [create_graph] is called at (Row 99-100).
+  The first argument in [create_graph] is the GraphClient made in Step. 1. 
+  The second argument is the return value from method [get_station_join].
+
+  Method [get_station_join] makes the combination list of two neighbor stations.
+  The station XML file is downloaded from Web (Row 28-49).
+  Contents of the XML file likes below.
+  In this sample program, we ignore the factor of 'distance', and only consider the connections between stations. So, the values in <station_name1>, <station_name2> are not used in the program.  
+   
   ::
   
    <ekidata version="ekidata.jp station_join api 1.0">
    <station_join>
     <station_cd1>1131231</station_cd1>
     <station_cd2>1131232</station_cd2>
-    <station_name1>西八王子</station_name1>
-    <station_name2>高尾</station_name2>
+    <station_name1>Nichi-Hachioji</station_name1>
+    <station_name2>Takao</station_name2>
     <lat1>35.656621</lat1>
     <lon1>139.31264</lon1>
     <lat2>35.642026</lat2>
@@ -249,8 +245,8 @@ Ruby
    <station_join>
     <station_cd1>1131230</station_cd1>
     <station_cd2>1131231</station_cd2>
-    <station_name1>八王子</station_name1>
-    <station_name2>西八王子</station_name2>
+    <station_name1>Hachioji</station_name1>
+    <station_name2>Nichi-Hachioji</station_name2>
     <lat1>35.655555</lat1>
     <lon1>139.338998</lon1>
     <lat2>35.656621</lat2>
@@ -259,127 +255,131 @@ Ruby
    <station_join>
     <station_cd1>1131229</station_cd1>
     <station_cd2>1131230</station_cd2>
-    <station_name1>豊田</station_name1>
-    <station_name2>八王子</station_name2>
+    <station_name1>Toyota</station_name1>
+    <station_name2>Hachioji</station_name2>
     <lat1>35.659502</lat1>
     <lon1>139.381495</lon1>
     <lat2>35.655555</lat2>
     <lon2>139.338998</lon2>
    </station_join>
-   -以下略-
-   
+   -Snip-
 
-  次に取得した駅情報のXMLファイルの<station_cd1>の値をstation_joinクラスのインスタンス変数station1に、<station_cd2>の値をstation2に格納します。
-  タグ<station_join>の数だけstation_joinクラスのインスタンスを作成し、26行目で作成したリストに格納していきます（37-48行目）。
+  Now, we input the value of <station_cd1> in the XML file into the instance variable 'station1' in [StationJoin] class, and the value of <station_cd2> in to 'station2'.
+  The number of instance created in [StationJoin] is the same as the number of <station_join> tags, and they are sotred in the ArrayList that created at Row 26 （Row 37-48).
   
-  上記で作成したリストを用いて、グラフを作成します(54-66行目)。
-  create_graphメソッドでは、以下の作業を行います。
-  
-   3-1. 駅情報の追加と駅IDの取得
-    グラフ内にノードを追加します。ここでのノードは駅に相当します。（例. 品川駅、御茶ノ水駅、東京駅など）
-    
-   3-2. 追加した2駅の相互にエッジを張る
-    登録した駅から隣接する駅へエッジを張ります。ここでのエッジは線路に相当します。（例.原宿⇒渋谷など）
-    
-  3-1. 駅情報の追加と駅IDの取得
-   取得したリストの1要素から隣接する2駅station1とstation2をそれぞれノードとしてグラフ内に追加するため、add_stationメソッドを呼び出します（56, 57行目）。
-   add_stationメソッドではハッシュstationsに、引数に指定した駅が含まれているかを確認し、含まれている場合はその駅のID nodeIdを返却し、含まれない場合は新たにノードを登録して駅名とnodeIdをstationsに格納した後にnodeIdを返却します（68-78行目）。
-   ノードの登録はcreate_nodeメソッドとupdate_nodeメソッドで行います。
-   まず、create_nodeメソッドを、引数にタスクを識別するZooKeeperクラスタ内でユニークな名前nameを指定して呼び出し、その戻り値をnodeIdとします(73行目)。
-   そしてupdate_nodeメソッドで、73行目で作成したノードの属性を更新します(74行目)。
-   
-  3-2. 追加した2駅の相互にエッジを張る
-   add_stationメソッドで隣接する2駅station1とstation2を追加した後に、station1からstation2へ向けたエッジとstation2からstation1へ向けたエッジを張ります（59-62行目）。
-   エッジを張るためにはcreate_edgeメソッドを利用します。
-   第2引数に接続元のnodeIDを指定し、第3引数には接続元と接続先のnodeIDを格納したエッジを指定します。
-   
-  64行目のupdate_indexメソッドはmixをローカルで実行するものです。分散環境では利用しないでください。
-  
- 4. 駅IDの表示
+  Next, we make the graph by using the list created above (Row 54-66).
+  The method [create_graph] performs the following task.
 
-  3-1.で駅名と駅ID(nodeID)をstationsに格納しました。ここでは駅名を駅IDの昇順に並び替えて表示しています(81-88行目)。
+   3-1. Add station information and ID.
+    Insert node into graph. Here, a node means a station. (eg. Shinagawa, Ochanomizu, Tokyo, etc.)
+    
+   3-2. Create links between the added two neighbor stations
+    Make the bi-link between the registed station to its neighbor stations. Here, a link means a route. (eg. Harajuku <-> Shibuya, etc.)    
+
+  3-1. Add station information and ID.
+   Method [add_station] is called (Row 56-57), to add every pair of neighboring nodes <station1, station2> in to the graph. 
+   Method [add_station] will check the map of 'stations'. If the map contains the specified station, the station_id will be returned; Otherwise, a new node is created, and its ID is returned after storing the nodeID and station name into the 'stations' map (Row 68-78).
+   Mehods [create_node] and [update_node] in GraphClient regist the new node.
+   At first, [create_node] method is called with its argument set by an unique task name in the ZooKeeper cluster, and the returned value is the nodeId.
+   After that, a node is added into the graph. Then, we regist the key-value <name, "station name"> into the 'property' (Row 73).
+   Finally, [update_node] method updates the 'property' with the node created at Row 73 (Row 74).
+   
+  3-2. Create links between the added two neighbor stations
+   After adding the two neighbor stations by method [addStation], we create the bi-links between station1 and station2 (Row 59-62).
+   Method [create_edge] is used to create the bi-links.
+   The second argument means the start node's ID. The third argument is an edge instance, which has the nodeID of both start and end nodes of the edge.
+   
+  The [update_index] method in Row 64 is used for locally Mix operation, do not use it in distributed environment.
+
+
+ 4. Show the stations
+
+  In step 3-1, station name and station ID(nodeID) are stored into the "stations". Here, we output the stations names by the ascending order of their IDs (Row 81-88).
   
  **search_route.rb**
  
- search_route.rbでは、create_graph.rbで作成したグラフから2駅間の最短経路を計算します。
- 使用するメソッドは、最短経路を計算するためのget_shortest_pathメソッドです。
-  
-  1. Jubatus Serverへの接続設定
+ 'search_route.rb' finds the shortest path between every 2 stations from the graph that made by create_graph.rb.
+ The method it used is the "get_shortest_path".
 
-   Jubatus Serverへの接続を行います（17行目）。
-   Jubatus ServerのIPアドレス，Jubatus ServerのRPCポート番号を設定します。
+  1. Connect to Jubatus Server
+
+   Connect to Jubatus Server (Row 17).
+   Setting the IP addr., RPC port of Jubatus Server.
+
    
-  2. クエリーの準備
+  2. Prepare the query
 
-   最短経路を計算するためのクエリーを準備します(20, 21行目)。
-   最短経路を計算するためのget_shortest_pathメソッドに必要なshortest_path_queryを作成します(20行目)。
-   types.shortest_path_queryの第1引数に接続元の駅ID、第2引数に接続先の駅IDを設定します。第3引数で指定したホップ以内に発見できなかった場合、結果は切り詰められます。
-   またクエリーはあらかじめadd_shortest_path_queryで登録しておく必要があります。
-   
-  3. 最短経路の計算
+   Prepare the query for the shortest path calculation (Row 20-21).
+   Create the shortest_path_query required by the [get_shortest_path] method (Row 20).
+   Store the start node's & end node's nodeIDs into the first & second arguments in the 'types.shortest_path_query'. The third argument is the number of 'maxhop', the search process will be truncated if it fails to find the route within the specified number of 'maxhop'.
+   Also note, the query should be registed by "add_shortest_path_query" beforehand.
 
-   2.で作成したshortest_path_queryを指定して、get_shortest_pathを呼び出し、最短経路の計算をします(24行目)。
-   
-  4. 結果の表示
+  3. Calculate the shortes path
 
-   3.で取得した最短経路で通過する駅を駅IDと関連付けて表示しています(27-35行目)。
+   By specifying the "shortest_path_query" that created in Step.2, [get_shortest_path] method will find the shortest path (Row 24). 
+
+  4. Show the results
+
+   Show the ID of stations that on the shortes path calculated in Step 3 (Row 27-35).
 
 
 ------------------------------------
-サンプルプログラムの実行
+Run the sample program
 ------------------------------------
 
-［Jubatus Serverでの作業］
+［At Jubatus Server］
 
-**サーバの起動**
+**Start server**
 
-jubagraphを起動します。
+start "jubagraph" process.
 
 ::
 
  $ jubagraph --configpath train_route.json 
 
 
-［Jubatus Clientでの作業］
+［At Jubatus Client］
 
-Jubatus 0.4.0 + Rubyクライアントをインストールしてください。
+Install the Jubatus 0.4.0 + Python client.
 
-**グラフの作成**
 
-鉄道の接続を表すグラフを作成します。
+**Create graph**
+
+Make the railway route graph.
 
 ::
 
  $ ruby create_graph.rb
  === Station IDs ===
- 0       品川
- 1       大崎
- 4       田町
+ 0       Shinagawa
+ 1       Osaki
+ 4       Tamachi
  ...
- 139     中野
- 144     四ツ谷
- 147     御茶ノ水
+ 139     Nagano
+ 144     Yotsuya
+ 147     Ochanomizu
  ```
 
- 駅名に対応する駅ID(グラフ上のnode ID) が出力されます。
-
-**経路の探索**
+Output of the station name, and their station ID (node ID on graph).
 
 
-2つの駅IDから最短経路を検索します。
+**Search the shortest path**
 
+
+Search the shortest path between 2 stations.
+ 
 ::
 
  $ ruby search_route.rb 0 144
  Pseudo-Shortest Path (hops) from 0 to 144:
-   0     品川
-   4     田町
-   7     浜松町
-   10    新橋
-   13    有楽町
-   16    東京
-   19    神田
-   147   御茶ノ水
-   144   四ツ谷
+   0     Shinagawa
+   4     Tamachi
+   7     Hamamatsucho
+   10    Shinbashi
+   13    Yurakucho
+   16    Tokyo
+   19    Kanda
+   147   Ochanomizu
+   144   Yotsuya
 
 

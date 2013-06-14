@@ -1,13 +1,14 @@
 Ruby
 ==================
 
-ここではRuby版のAnomalyサンプルプログラムの解説をします。
+Here we explain the Ruby sample program of anomaly detection.
 
 --------------------------------
-ソースコード
+Source_code
 --------------------------------
 
-このサンプルプログラムでは、学習の設定をするconfig.jsonと外れ値検知を行うanomaly.rbを利用します。以下にソースコードを記載します。
+In this sample program, we will explain 1) how to configure the learning-algorithms in Jubatus with the config file 'config.json'; 2) how to detect the anomaly data with the example file ‘anomaly.rb’. Here are the source codes of 'config.json' and 'anomaly.rb'.
+
 
 **config.json**
 
@@ -60,10 +61,10 @@ Ruby
  11 : require 'jubatus/anomaly/types'
  12 : 
  13 : 
- 14 : # 1.Jubatus Serverへの接続設定
+ 14 : # 1.Connect to Jubatus Server
  15 : client = Jubatus::Anomaly::Client::Anomaly.new($host, $port)
  16 : 
- 17 : # 2.学習用データの準備
+ 17 : # 2.Prepare learning data
  18 : open("kddcup.data_10_percent.txt") {|f|
  19 :   f.each { |line|
  20 :     duration, protocol_type, service, flag, src_bytes, dst_bytes, land, wrong_fragment, urgent, hot, num_failed_logins, logged_in, num_compromised, root_shell, su_attempted, num_root, num_file_creations, num_shells, num_access_files, num_outbound_cmds, is_host_login, is_guest_login, count, srv_count, serror_rate, srv_serror_rate, rerror_rate, srv_rerror_rate, same_srv_rate, diff_srv_rate, srv_diff_host_rate, dst_host_count, dst_host_srv_count, dst_host_same_srv_rate, dst_host_diff_srv_rate, dst_host_same_src_port_rate, dst_host_srv_diff_host_rate, dst_host_serror_rate, dst_host_srv_serror_rate, dst_host_rerror_rate, dst_host_srv_rerror_rate, label = line.split(",")
@@ -114,10 +115,10 @@ Ruby
  65 :         ["dst_host_srv_rerror_rate", dst_host_srv_rerror_rate.to_f],
  66 :         ]
  67 :        )
- 68 :     # 3.データの学習（学習モデルの更新）
+ 68 :     # 3.Model training(update learning model)
  69 :     ret = client.add($name, datum)
  70 :     
- 71 :     # 4.結果の出力
+ 71 :     # 4.Display result
  72 :     if (ret[1] != Float::INFINITY) and (ret[1] != 1.0) then
  73 :       print ret, label
  74 :     end
@@ -125,85 +126,84 @@ Ruby
  76 : }
  77 : 
 
-
 --------------------------------
-解説
+Explanation
 --------------------------------
 
 **config.json**
 
-設定は単体のJSONで与えられます。JSONの各フィールドは以下のとおりです。
-
-* method
-
- 分類に使用するアルコリズムを指定します。
- Regressionで指定できるのは、現在"LOF"のみなので"LOF"（Local Outlier Factor）を指定します。
+The configuration information is given by the JSON unit. Here is the meaning of each JSON filed.
 
 
-* converter
+ * method
 
- 特徴変換の設定を指定します。
- ここでは、"num_rules"と"string_rules"を設定しています。
+  Specify the algorithm used in anomaly detection. Currently, "LOF"(Local Outlier Factor) is the only one algorithm for anomaly detection, so, we write "LOF" here.
+
+
+ * converter
+
+  Specify the configurations in feature converter. In this sample, we will set "num_rules" and "string_rules". 
+
+  "num_rules" specifies the value extracting rules for values in numerical format.
+  "key" is set as "*" here, which means all the "key" will be taken into account. "type" is set as "num", which means each value has its weight as equal as the value itself. For example, if data's value i "2", its weight is set as 2; if data's value is "6", its weight is set as 6.
+
  
- "num_rules"は数値特徴の抽出規則を指定します。
- "key"は"*"つまり、すべての"key"に対して、"type"は"num"なので、指定された数値をそのまま重みに利用する設定です。
- 具体的には、valueが"2"であれば"2"を、"6"であれば"6"を重みとします。
- 
- "string_rules"は文字列特徴の抽出規則を指定します。
- "key"は"*"、"type"は"str"、"sample_weight"は"bin"、"global_weight"は"bin"としています。
- これは、すべての文字列に対して、指定された文字列をそのまま特徴として利用し、各key-value毎の重みと今までの通算データから算出される、大域的な重みを常に"1"とする設定です。
+  "string_rules" specifies the value extracting rules for values in string format.
+  Here, "key" is set as "*", "type" is "str", "sample_weight" is "bin", and "global_weight" is "bin".
+  This means, all the "key" will be taken into account, the features in strings values will be used without convertion, the weight of each key-value will be calculated throughout the whole data have been used, and the global weight is a constant value of "1".
 
-* parameter（要修正）
+
+ * parameter(could be modified)
 
  ･･･
 
+
 **anomaly.rb**
 
- anomaly.rbでは、csvから読み込んだデータをJubatusサーバ与え、外れ値を検出し出力します。
+ anomaly.rb will extract the data from text file, send them to Jubatus server, and get their anomaly detection result from the server.
 
- 1. Jubatus Serverへの接続設定
+ 1. Connect to Jubatus Server
 
-  Jubatus Serverへの接続を行います（15行目）。
-  Jubatus ServerのIPアドレス、Jubatus ServerのRPCポート番号を設定します。
+  Connect to Jubatus Server (Row 15)。
+  Setting the IP addr., RPC port of Jubatus Server.
+
+ 2. Prepare the learning data
+
+  AnomalyClient will send the Datum to Jubatus server for data learning or anomaly detection, by using its "add" method.
+  In this example, the result-data in KDD Cup(Knowledge Discovery and Data Mining Cup) is used as the trainning data. At first, the program read the training data from the TEXT file, one line at a time (Row 18-19). The data in TEXT file are seperated by commas, so we split the items by ’,’ (Row 20).
+  Then, we make the data items stored in datum unit for model training later.(Row 21-67).
   
- 2. 学習用データの準備
+ 3. Model training (update learning model)
 
-  AnomalyClientでは、Datumをaddメソッドに与えることで、学習および外れ値検知が行われます。
-  今回はKDDカップ（Knowledge Discovery and Data Mining Cup）の結果（TEXTファイル）を元に学習用データを作成していきます。
-  まず、学習用データの元となるTEXTファイルを読み込みます（18-19行目）。
-  このTEXTファイルはカンマ区切りで項目が並んでいるので、取得した1行を’,’で分割し要素ごとに分けます（20行目）。
-  取得した要素を用いて学習用データdatumを作成します（21-67行目）。
+  Input the training data generated in step.2 into the add() method of AnomalyClient (Row 69).
+  The first parameter in add() is the unique name for task identification in Zookeeper.
+  (use null charactor "" for the stand-alone mode)
+  The second parameter specifies the Datum generated in step.2.
+  The returned result <string, float> is consisted of the data ID and its estimated anomaly value.
   
- 3. データの学習（学習モデルの更新）
+ 4. Display result
 
-  AnomalyClientのaddメソッドに2. で作成したデータを渡します（69行目）。
-  addメソッドの第1引数は、タスクを識別するZookeeperクラスタ内でユニークな名前を指定します。（スタンドアロン構成の場合、空文字（""）を指定）
-  第2引数として、先ほど2. で作成したDatumを指定します。
-  戻り値として、tuple<string, float>型で点IDと異常値を返却します。
-  
- 4. 結果の出力
-
-  addメソッドの戻り値である異常値から外れ値かどうかを判定します。
-  異常値が無限ではなく、1.0以外の場合は外れ値と判断し出力します（72-74行目）。
+  Display the returned value from add() method after a correction checking.
+  The anomaly value should not be infinity or　1.0　(Row 72-74).
 
 -------------------------------------
-サンプルプログラムの実行
+Run the sample program
 -------------------------------------
 
-**［Jubatus Serverでの作業］**
+**［At Jubatus Server］**
+ start "jubaanomaly" process.
 
- jubaanomalyを起動します。
- 
- ::
+::
  
   $ jubaanomaly --configpath config.json
- 
 
-**［Jubatus Clientでの作業］**
 
- 必要なパッケージとRubyクライアントを用意し、実行します。
+**［At Jubatus Client］**
  
-**［実行結果］**
+ Get the required package and Ruby client ready.
+ Run!
+ 
+**［Result］**
 
 ::
 
@@ -222,4 +222,4 @@ Ruby
  ('3816', 1.0017062) normal.
  ('3906', 0.5671135) normal.
  …
- …（以下略）
+ …(omitted)

@@ -1,13 +1,13 @@
-Java
+﻿Java
 ==================
 
-ここではJava版のGraphサンプルプログラムの解説をします。
+Here we explain the sample program of Graph in Java. 
 
 --------------------------------
-ソースコード
+Source_code
 --------------------------------
 
-このサンプルプログラムでは、学習アルゴリズム等の設定をするtrain_route.json、グラフ作成を行うCreateGraph.java、最短経路を計算するSearchRoute.javaを利用します。以下にソースコードを記載します。
+In this sample program, we will explain 1) how to configure the learning-algorithms that used by Jubatus, with the example file 'train_route.json'; 2) how to learn the training data and calculate the shortest path with the example file ‘SearchRoute.java’. Here are the source codes of 'train_route.json' and 'SearchRoute.java'. 
 
 **train_route.json**
 
@@ -67,20 +67,20 @@ Java
  039 : 	}
  040 : 
  041 : 	private final void start() throws Exception {
- 042 : 		// 1. Jubatus Serverへの接続設定
+ 042 : 		// 1. Connect to Jubatus Server
  043 : 		GraphClient client = new GraphClient(HOST, PORT, 5);
  044 : 
- 045 : 		// 2. プリセットクエリーを登録
+ 045 : 		// 2. Regist the preset query
  046 : 		PresetQuery pq = new PresetQuery();
  047 : 		pq.edge_query = new ArrayList<>();
  048 : 		pq.node_query = new ArrayList<>();
  049 : 		client.add_shortest_path_query(NAME, pq);
  050 : 
- 051 : 		// 3. グラフの作成
+ 051 : 		// 3. Generate the graph
  052 : 		this.createGraph(client, this.getStationJoin(11302)); // 山手線
  053 : 		this.createGraph(client, this.getStationJoin(11312)); // 中央線
  054 : 
- 055 : 		// 4. 駅IDの表示
+ 055 : 		// 4. Show the Station IDs
  056 : 		System.out.println("=== Station IDs ===");
  057 : 		List<Map.Entry> entries = new ArrayList<Map.Entry>(stations.entrySet());
  058 : 		Collections.sort(entries, new Comparator() {
@@ -96,24 +96,24 @@ Java
  068 : 		}
  069 : 	}
  070 : 
- 071 : 	// 接続する2駅の組み合わせリストを作成
+ 071 : 	// Generate the combination list of 2 stations
  072 : 	private List<StationJoin> getStationJoin(int lineCd) throws Exception {
- 073 : 		// 返却用リスト
+ 073 : 		// Return list
  074 : 		List<StationJoin> joinList = new ArrayList<StationJoin>();
  075 : 
- 076 : 		// XML文章の読み込み
+ 076 : 		// Read the XML file
  077 : 		Document document = this.getXml(lineCd);
  078 : 
- 079 : 		// XML文章中のタグ<station_join>の数だけ繰り返す
+ 079 : 		// Repeat for the number of <station_join> tags in XML file
  080 : 		for (int i = 0; i < document.getElementsByTagName("station_join").getLength(); i++) {
  081 : 			String station1 = "";
  082 : 			String station2 = "";
- 083 : 			// <station_join>タグで囲まれた子ノードの数だけ繰り返す
+ 083 : 			// Repeat for the number of childnodes surrounded by the <station_join> tags
  084 : 			for (int j = 0; j < document.getElementsByTagName("station_join").item(i).getChildNodes().getLength(); j++) {
  085 : 				Node node = document.getElementsByTagName("station_join").item(i).getChildNodes().item(j);
  086 : 				String nodeName = node.getNodeName();
  087 : 				String nodeValue = null;
- 088 : 				// station_name1, station_name2のvalueを取得
+ 088 : 				// Get the values of station_name1 and station_name2
  089 : 				if (node.getFirstChild() != null) {
  090 : 					nodeValue = node.getFirstChild().getNodeValue();
  091 : 				}
@@ -128,14 +128,14 @@ Java
  100 : 		return joinList;
  101 : 	}
  102 : 
- 103 : 	// XML文章の読み込み
+ 103 : 	// Read the XML file
  104 : 	private Document getXml(int lineCd) throws Exception {
- 105 : 		// プロキシ設定
+ 105 : 		// Set the proxy 
  106 : 		System.setProperty("proxySet", "true");
  107 : 		System.setProperty("proxyHost", "192.168.00.0");
  108 : 		System.setProperty("proxyPort", "8080");
  109 : 
- 110 : 		// BASIC認証の設定
+ 110 : 		// Set the BASIC certification
  111 : 		final String username = "user";
  112 : 		final String password = "password";
  113 : 		Authenticator.setDefault(new Authenticator() {
@@ -145,7 +145,7 @@ Java
  117 : 			}
  118 : 		});
  119 : 
- 120 : 		// WEB上のXMLファイルを読み込む
+ 120 : 		// Read the XML file from WEB
  121 : 		String urlStr = "http://www.ekidata.jp/api/n/" + String.valueOf(lineCd) + ".xml";
  122 : 		URL url = new URL(urlStr);
  123 : 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -159,15 +159,15 @@ Java
  131 : 		return document;
  132 : 	}
  133 : 
- 134 : 	// 3. グラフの作成
+ 134 : 	// 3. Generate the Graph
  135 : 	private void createGraph(GraphClient client, List<StationJoin> stationJoin) {
- 136 : 		// XMLファイルから取得し接続する2駅の組み合わせリスト分だけ繰り返す
+ 136 : 		// Repeat for the number of two-stations' combination lists that got from XML list
  137 : 		for (StationJoin join : stationJoin) {
- 138 : 			// 3-1. 駅情報の追加と駅IDの取得
+ 138 : 			// 3-1. Get the station information and ID
  139 : 			String s1_node_id = this.addStation(client, join.station1);
  140 : 			String s2_node_id = this.addStation(client, join.station2);
  141 : 
- 142 : 			// 3-2. 追加した2駅の相互にエッジを張る
+ 142 : 			// 3-2. Make bi-links between new added two stations
  143 : 			Edge edge1 = new Edge();
  144 : 			edge1.property = new HashMap<>();
  145 : 			edge1.source = s1_node_id;
@@ -186,16 +186,16 @@ Java
  158 : 	private String addStation(GraphClient client, String station) {
  159 : 		String nodeId;
  160 : 		Map<String, String> property = new HashMap<String, String>();
- 161 : 		// 引数に指定された駅がMap stationsに格納されているか確認
+ 161 : 		// Check whether the 'station', as the argument, has be stored in the Map or not.
  162 : 		if (this.stations.containsKey(station)) {
- 163 : 			// 格納されている場合は、そのidを返却
+ 163 : 			// If yes, return the ID
  164 : 			nodeId = this.stations.get(station);
  165 : 		} else {
- 166 : 			// 格納されていない場合は、新たにnodeを作成し、作成時に取得したidを返却
+ 166 : 			// If no, create a new node for the station, and return its ID.
  167 : 			nodeId = client.create_node(NAME);
  168 : 			property.put("name", station);
  169 : 			client.update_node(NAME, nodeId, property);
- 170 : 			// Map stationsにnodeを作成した駅を格納
+ 170 : 			// Store the created node into the Map of stations
  171 : 			this.stations.put(station, nodeId);
  172 : 		}
  173 : 		return nodeId;
@@ -228,10 +228,10 @@ Java
  13 : 	public static final String NAME = "trainRoute";
  14 : 
  15 : 	private final void start(String source, String target) throws Exception {
- 16 : 		// 1. Jubatus Serverへの接続設定
+ 16 : 		// 1. Connect to Jubatus Server
  17 : 		GraphClient client = new GraphClient(HOST, PORT, 5);
  18 : 
- 19 : 		// 2. クエリーの準備
+ 19 : 		// 2. Prepare the query
  20 : 		PresetQuery pq = new PresetQuery();
  21 : 		pq.edge_query = new ArrayList<>();
  22 : 		pq.node_query = new ArrayList<>();
@@ -242,10 +242,10 @@ Java
  27 : 		query.max_hop = 100;
  28 : 		query.query = pq;
  29 : 
- 30 : 		// 3. 最短経路を計算
+ 30 : 		// 3. Calculate the shortest path
  31 : 		List<String> stations = client.get_shortest_path(NAME, query);
  32 : 
- 33 : 		// 4. 結果の表示
+ 33 : 		// 4. Return the results
  34 : 		System.out.println("Pseudo-Shortest Path (hops) from " + query.source + "to " + query.target);
  35 : 		for (String station : stations) {
  36 : 			Node node = client.get_node(NAME, station);
@@ -266,90 +266,85 @@ Java
 
 
 --------------------------------
-解説
+Explanation
 --------------------------------
 
 **train_route.json**
 
-設定は単体のJSONで与えられます。JSONの各フィールドは以下のとおりです。
+The configuration information is given by the JSON unit. Here is the meaning of each JSON filed.
 
  * method
  
-  グラフ解析に使用するアルゴリズムを指定します。
-  ここでは、インデックスのないグラフを利用するための"graph_wo_index"を指定します。
-  
+  Specify the algorithm used in graph mining. In this example, we use the graph without indexing, so we specify it with "graph_wo_index".
   
  * parameter
  
-  アルゴリズムに渡すパラメータを指定します。
-  ここでは2つのパラメータ、"damping_factor"と"landmark_num"を指定しています。
-  "damping_factor"は、PageRankの計算におけるdamping factorで、次数の異なるノードのスコアを調整します。大きくすると構造をよく反映したスコアを出す代わりに、スコアに極端な偏りが発生します。
-  "landmark_num" は最短パスにおいてランドマークの総数を指定します。大きくすると正確な最短パスに近づく代わりに、多くのメモリを消費します。
+  Specify the parameters to be passed to the algorithm.
+  We specify two parameter here, "damping_factor" and "landmark_num".
+  "damping_factor" is the damping factor used in PageRank calculation. It adjusts scores for nodes with differenct degrees.The bigger it is, the more sensitive to graph structure PageRank score is, but the larger biases it causes. In the original paper, 0.85 is good.
+  "landmark_num" is used for shortest path calculation. The bigger it is, more accurate value you can get, but the more memory is required. 
 
 
 **CreateGraph.java**
 
- CreateGraph.javaでは、山手線と中央線の接続を表すグラフを作成します。Graphのクライアントプログラムは、us.jubat.graphクラス内で定義されているGraphClientクラスを利用して作成します。サンプルで使用するメソッドは、以下の5つです。
+ CreateGraph.java generates a graph composed of Yamanote-line and Chuou-line. The client program in Graph will use the 'GraphClient' class defined in 'us.jubat.graph'. Here are the 5 methods used in the sample.
  
  * add_shortest_path_query(String name, PresetQuery query)
  
-  最短パスの算出に使用したいクエリーを新たに登録します。
+  Regist the shortest-path calculation query that to be used.
 
  * create_node(String name)
  
-  グラフ内にノードを一つ追加します。
+  Add one node into graph.
 
  * update_node(String name, String node_id, Map<String, String> property)
  
-  ノードnode_idの属性をpropertyに更新します。
+  Update a node's 'node_id' attribute in property map.
 
  * create_edge(String name, String node_id, Edge e)
  
-  e.sourceからe.targetに向けたエッジを張ります。
+  Make the link from e.source to e.target.
 
  * get_shortest_path(String name, ShortestPathQuery query)
  
-  プリセットクエリーquery.queryにマッチする、query.sourceからquery.targetへの最短パスを(予め算出された値から)計算します。
+  Calculates (from the precomputed data) a shortest path from query.source to query.target that matches the preset query.
 
- 1. Jubatus Serverへの接続設定
+ 1. Connect to Jubatus Server
 
-  Jubatus Serverへの接続を行います（33行目）。
-  Jubatus ServerのIPアドレス、Jubatus ServerのRPCポート番号、接続待機時間を設定します。
-  
- 2. プリセットクエリーを登録
+  Connect to Jubatus Server (Row 33).
+  Setting the IP addr., RPC port of Jubatus Server, and the connection waiting time.
 
-  最短経路を計算するために、クエリーをあらかじめadd_shortest_path_queryメソッドで登録しておく必要があります。
-  そのためのクエリーPresetQueryを作成します(46行目)。pq.edge_queryとpq.node_queryにArrayListを宣言して格納します(47, 48行目）。
-  add_shortest_path_queryメソッドで作成したクエリーを登録します(49行目)。
+ 2. Regist the preset query
   
- 3. グラフの作成
+  The 'add_shortest_path_query' method must be registered beforehand. Therefore, the 'PresetQuery' is made (Row 46), and its pq.edge_query and pq.node_query are filled with the newly declared ArrayList (Row 47, 48). Finally, the query made by 'add_shortest_path_query' is registed (Row 49).
 
-  山手線と中央線の接続を表すグラフを作成します。
-  ここでは、privateメソッド「createGraph」を呼び出します(52, 53行目)。
-  private メソッド「createGraph」の第1引数は 1. で作成したGraphClientです。
-  第二引数にはprivateメソッド「getStationJoin」の戻り値を指定します。
+ 3. Generate the graph
+
+  Make the graph composed of Yamanote-line and Chuou-line.
+  Firstly, private method [createGraph] is called at (Row 52, 53).
+  The first parameter in [createGraph] is the GraphClient made in Step. 1. 
+  The second prarmeter is the return value from private method [getStationJoin].
   
-  privateメソッド「getStationJoin」では接続する2駅を組み合わせたリストを作成します。
-  まず内部クラス「StationJoin」のArrayListを作成します(74行目)。
-  StationJoin クラスにはインスタンス変数station1とstation2が設定されています(31-39行目)。
-  ここに接続する2駅の駅名を設定して、そのリストを作成することがgetStaitonJoinメソッドの処理内容です。
+  Private method [getStationJoin] makes the combination list of two neighbor stations.
+  At first, the ArrayList of inner class [StationJoin] is made (Row 74).
+  Then, set the instance variable, station1 and station2, in [StationJoin] Class (Row 31-39).
+  After setting the two stations' name, method [getStationJoin] will make the combination list.
   
-  続いて、駅情報をWEB上にあるXMLファイルから取得するため、privateメソッド「getXml」を呼び出します(77行目)。
-  getXmlメソッドの引数には、getStationJoinメソッドを呼び出したときの引数をそのまま渡します。
-  引数に指定した値はXMLファイルを取得するURLを作成するために使います。
-  privateメソッド「getXml」の106行目から118行目の処理はプロキシ認証のための設定なので、不要な場合はコメントアウトしてください。
-  121行目から129行目はWEB上からXMLファイルを取得するための処理です。
-  取得したXMLファイルの構造は下記のようになっています。
-  今回のプログラムでは駅間の距離などは考慮せず、駅の接続情報のみ用いるため、下記XMLファイルの<station_name1>、<station_name2>の値しかプログラム中では扱いません。
-  
+  Next, we get the station information from the Web. Private method [getXml] is called to download the XML file (Row 77).
+  The same parameter is passed from [getStationJoin] to [getXml] method.
+  This parameter is used to make the URL, from which to download XML file.
+  Proxy for the private method [getXml] is set in (Row 106-118). Please comment out them if not needed.
+  Codes in (Row 121-129) are the processes for reading the XML file.
+  Contents of the XML file likes below.
+  In this sample program, we ignore the factor of 'distance', and only consider the connections between stations. So, the values in <station_name1>, <station_name2> are not used in the program.  
   ::
   
    <ekidata version="ekidata.jp station_join api 1.0">
    <station_join>
     <station_cd1>1131231</station_cd1>
     <station_cd2>1131232</station_cd2>
-    <station_name1>西八王子</station_name1>
-    <station_name2>高尾</station_name2>
+    <station_name1>Nichi-Hachioji</station_name1>
+    <station_name2>Takao</station_name2>
     <lat1>35.656621</lat1>
     <lon1>139.31264</lon1>
     <lat2>35.642026</lat2>
@@ -358,8 +353,8 @@ Java
    <station_join>
     <station_cd1>1131230</station_cd1>
     <station_cd2>1131231</station_cd2>
-    <station_name1>八王子</station_name1>
-    <station_name2>西八王子</station_name2>
+    <station_name1>Hachioji</station_name1>
+    <station_name2>Nichi-Hachioji</station_name2>
     <lat1>35.655555</lat1>
     <lon1>139.338998</lon1>
     <lat2>35.656621</lat2>
@@ -368,118 +363,120 @@ Java
    <station_join>
     <station_cd1>1131229</station_cd1>
     <station_cd2>1131230</station_cd2>
-    <station_name1>豊田</station_name1>
-    <station_name2>八王子</station_name2>
+    <station_name1>Toyota</station_name1>
+    <station_name2>Hachioji</station_name2>
     <lat1>35.659502</lat1>
     <lon1>139.381495</lon1>
     <lat2>35.655555</lat2>
     <lon2>139.338998</lon2>
    </station_join>
-   -以下略-
+   -Snip-
    
 
-  次に取得した駅情報のXMLファイルの<station_cd1>の値をStationJoinクラスのインスタンス変数station1に、<station_cd2>の値をstation2に格納します。
-  タグ<station_join>の数だけStationJoinクラスのインスタンスを作成し、74行目で作成したArrayListに格納していきます（80-99行目）。
+  Now, we input the value of <station_cd1> in the XML file into the instance variable 'station1' in [StationJoin] class, and the value of <station_cd2> in to 'station2'.
+  The number of instance created in [StationJoin] is the same as the number of <station_join> tags, and they are sotred in the ArrayList that created at Row 74 （Row 80-99).
   
-  上記で作成したArrayList<StationJoin>を用いて、グラフを作成します(135-156行目)。
-  privateメソッド「createGraph」では、以下の作業を行います。
+  Next, we make the graph by using the ArrayList<StationJoin> created above (Row 135-156).
+  The private method [createGraph] performs the following task.
   
-   3-1. 駅情報の追加と駅IDの取得
-    グラフ内にノードを追加します。ここでのノードは駅に相当します。（例. 品川駅、御茶ノ水駅、東京駅など）
+   3-1. Add station information and ID.
+    Insert node into graph. Here, a node means a station. (eg. Shinagawa, Ochanomizu, Tokyo, etc.)
     
-   3-2.追加した2駅の相互にエッジを張る
-    登録した駅から隣接する駅へエッジを張ります。ここでのエッジは線路に相当します。（例.原宿⇒渋谷など）
+   3-2. Create links between the added two neighbor stations
+    Make the bi-link between the registed station to its neighbor stations. Here, a link means a route. (eg. Harajuku <-> Shibuya, etc.)
     
-  3-1. 駅情報の追加と駅IDの取得
-   取得したリストの1要素から隣接する2駅station1とstation2をそれぞれノードとしてグラフ内に追加するため、privateメソッド「addStation」を呼び出します（139,140行目）。
-   addStationメソッドではHashMap<String, String>型のインスタンス変数stationsに、引数に指定した駅が含まれているかを確認し、含まれている場合はその駅のID nodeIdを返却し、含まれない場合は新たにノードを登録して駅名とnodeIdをstationsに格納した後にnodeIdを返却します（158-174行目）。
-   ノードの登録はGraphClientのcreate_nodeメソッドとupdate_nodeメソッドで行います(167-169行目)。
-   まず、create_nodeメソッドを、引数にタスクを識別するZooKeeperクラスタ内でユニークな名前nameを指定して呼び出し、その戻り値をnodeIdとします(167行目)。
-   これでグラフ内にノードがひとつ追加されます。続いて、160行目で作成したHashMap<String, String> クラスのインスタンスpropertyにキーを"name"、バリューを登録する駅名として格納します(168行目)。
-   そしてupdate_nodeメソッドで、167行目で作成したノードの属性をpropertyに更新します(169行目)。
+  3-1. Add station information and ID.
+   Private method [addStation] is called (Row 139-140), to add every pair of neighboring nodes <station1, station2> in to the graph. 
+   Method [addStation] will check the instance variable 'stations' (of HashMap<String, String> type). If the HashMap contains the specified station, the station_id will be returned; Otherwise, a new node is created, and its ID is returned after storing the nodeID and station name into the 'stations' Hashmap (Row 158-174).
+   Mehods [create_node] and [update_node] in GraphClient regist the new node (Row 167-169).
+   At first, [create_node] method is called with its argument set by an unique task name in the ZooKeeper cluster, and the returned value is the nodeId (Row 167).
+   After that, a node is added into the graph. Then, we regist the key-value <name, "station name"> into the 'property' (Row 168), which is the instance of HashMap<String, String> created at Row 160.
+   Finally, [update_node] method updates the 'property' with the node created at Row 167 (Row 169).
    
-  3-2. 追加した2駅の相互にエッジを張る
-   addStationメソッドで隣接する2駅station1とstation2を追加した後に、station1からstation2へ向けたエッジとstation2からstation1へ向けたエッジを張ります（143-152行目）。
-   エッジを張るためにはcreate_edgeメソッドを利用します。
-   第2引数に接続元のnodeIDを指定し、第3引数には、接続元と接続先のnodeIDを格納したEdgeクラスのインスタンスを指定します。
+  3-2. Create links between the added two neighbor stations
+   After adding the two neighbor stations by method [addStation], we create the bi-links between station1 and station2 (Row 143-152).
+   Method [create_edge] is used to create the bi-links.
+   The second argument means the start node's ID. The third argument is an instance of Edge class, which stores the nodeID of both start and end nodes in the edge.
    
-  154行目のupdate_indexメソッドはmixをローカルで実行するものです。分散環境では利用しないでください。
+  The [update_index] method in Row 154 is used for locally Mix operation, do not use it in distributed environment.
   
- 4. 駅IDの表示
+ 4. Show the stations
 
-  3-1.で駅名と駅ID(nodeID)をstationsに格納しました。ここでは駅名を駅IDの昇順に並び替えて表示しています(56-68行目)。
+  In step 3-1, station name and station ID(nodeID) are stored into the "stations". Here, we output the stations names by the ascending order of their IDs (Row 56-68).
   
  **SearchRoute.java**
  
- SearchRoute.javaでは、CreateGraph.javaで作成したグラフから2駅間の最短経路を計算します。
- 使用するメソッドは、最短経路を計算するためのget_shortest_pathメソッドです。
+ SearchRoute.java finds the shortest path between every 2 stations from the graph that made by CreateGraph.java.
+ The method it used is the "get_shortest_path".
   
-  1. Jubatus Serverへの接続設定
+  1. Connect to Jubatus Server
 
-   Jubatus Serverへの接続を行います（33行目）。
-   Jubatus ServerのIPアドレス、Jubatus ServerのRPCポート番号、接続待機時間を設定します。
+   Connect to Jubatus Server (Row 17).
+   Setting the IP addr., RPC port of Jubatus Server, and the connection waiting time.
+
    
-  2. クエリーの準備
+  2. Prepare the query
 
-   最短経路を計算するためのクエリーを準備します(20-28行目)。
-   最短経路を計算するためのget_shortest_pathメソッドに必要なShortestPathQueryを作成します(24行目)。
-   ShortestPathQueryのメンバ変数sourceに接続元の駅ID(nodeId)、targetに接続先の駅ID(nodeId)を格納します。
-   メンバ変数maxhopで指定したホップ以内に発見できなかった場合、結果は切り詰められます。
-   またクエリーはあらかじめadd_shortest_path_queryで登録しておく必要があります。
+   Prepare the query for the shortest path calculation (Row 20-28).
+   Create the ShortestPathQuery required by the [get_shortest_path] method (Row 24).
+   Store the start node's & end node's nodeIDs into the source & target variables in the 'ShortestPathQuery'. 
+   The process will be truncated if it fails to find the route within the specified number of 'maxhop'.
+   Also note, the query should be registed by "add_shortest_path_query" beforehand.
    
-  3. 最短経路の計算
+  3. Calculate the shortes path
 
-   2.で作成したShortestPathQueryを指定して、get_shortest_path(String name, ShortestPathQuery query)を呼び出し、最短経路の計算をします(31行目)。このメソッドでは、プリセットクエリーquery.queryにマッチする、query.sourceからquery.targetへの最短パスを(予め算出された値から) 計算することができます。
+   By specifying the "ShortestPathQuery" that created in Step.2, get_shortest_path(String name, ShortestPathQuery query)method will find the shortest path (Row 31). It calculates (from the precomputed data) the shortest path from query.source to query.target that matches the preset query. 
    
-  4. 結果の表示
+  4. Show the results
 
-   3.で取得した最短経路で通過する駅を駅IDと関連付けて表示しています(34-42行目)。
+   Show the ID of stations that on the shortes path calculated in Step 3 (Row 34-42).
 
 
 -------------------------------------
-サンプルプログラムの実行
+Run the sample program
 -------------------------------------
 
-［Jubatus Serverでの作業］
- jubagraphを起動します。
+［At Jubatus Server］
+ start "jubagraph" process.
  
  ::
  
   $ jubagraph --configpath train_route.json
  
 
-［Jubatus Clientでの作業］
- 必要なパッケージとJavaクライアントを用意し、create_graph.javaを実行します。
+［At Jubatus Client］
+ Get the required package and Java client ready.
+ Run create_graph.java!
  
  ::
  
   $ java CreateGraph
   
   === Station IDs ===
-  0       品川
-  1       大崎
-  4       田町
+  0       Shinagawa
+  1       Osaki
+  4       Tamachi
   ...
-  139     中野
-  144     四ツ谷
-  147     御茶ノ水
+  139     Nagano
+  144     Yotsuya
+  147     Ochanomizu
   
- 駅名に対応する駅 ID (グラフ上の node ID) が出力されます。
+ Output of the station name, and their station ID (node ID on graph).
 
- 2 つの駅 ID から最短経路を検索します。
+ Search the shortest path between 2 stations.
  
  ::
  
   $ java SearchRoute 0 144
   
   Pseudo-Shortest Path (hops) from 0 to 144:
-  0     品川
-  4     田町
-  7     浜松町
-  10    新橋
-  13    有楽町
-  16    東京
-  19    神田
-  147   御茶ノ水
-  144   四ツ谷
+  0     Shinagawa
+  4     Tamachi
+  7     Hamamatsucho
+  10    Shinbashi
+  13    Yurakucho
+  16    Tokyo
+  19    Kanda
+  147   Ochanomizu
+  144   Yotsuya
 

@@ -1,15 +1,14 @@
-Python
+﻿Python
 ================================
 
-ここではPython版のRegressionサンプルプログラムの解説をします。
+Here we explain the sample program of Regression in Python.
 
 --------------------------------
-ソースコード
+Source_code
 --------------------------------
 
-このサンプルプログラムでは、学習アルゴリズム等の設定をするrent.jsonとデータの学習及び学習モデルに基づく推定を行うmain.py、
-また学習用データとしてrent-data.csv、推定用データとしてmyhome.ymlを使用します。
-以下にrent.jsonとmain.pyおよびmyhome.ymlのソースコードを記載します。
+In this sample program, we will explain 1) how to configure the learning-algorithms that used by Jubatus, with the example file 'rent.json'; 2) how to train and predict by 'main.py' with the training data in 'rent-data.csv' file and the estimation data in 'myhome.yml' file. Here are their source codes.
+
 
 **rent.json**
 
@@ -73,10 +72,10 @@ Python
  30 : 
  31 : def main():
  32 :   args = parse_options()
- 33 :   # 1. Jubatus Serverへの接続設定
+ 33 :   # 1. Connect to Jubatus Server
  34 :   client = regression('127.0.0.1', 9199)
  35 : 
- 36 :   # 2. 学習用データの準備
+ 36 :   # 2. Prepare the training data
  37 :   num = 0
  38 :   if args.traindata:
  39 :     with open(args.traindata, 'r') as traindata:
@@ -100,13 +99,13 @@ Python
  57 :         d = datum(string_values, num_values)
  58 :         train_data = [[float(rent), d]]
  59 : 
- 60 :         # 3. データの学習（学習モデルの更新）
+ 60 :         # 3. Model training (update model)
  61 :         client.train('', train_data)
  62 : 
  63 :     # print train number
  64 :     print 'train ...', num
  65 : 
- 66 :   # 4. 推定用データの準備
+ 66 :   # 4. Prepare predict data
  67 :   with open(args.analyzedata, 'r') as analyzedata:
  68 :     myhome = yaml.load(analyzedata)
  69 :     string_values = [
@@ -121,10 +120,10 @@ Python
  78 :     d = datum(string_values, num_values)
  79 :     analyze_data = [d]
  80 : 
- 81 :     # 5. 学習モデルに基づく推定
+ 81 :     # 5. Predict by the regression model
  82 :     result = client.estimate('', analyze_data)
  83 : 
- 84 :     # 6. 結果の出力
+ 84 :     # 6. Output result
  85 :     print 'rent ....', round(result[0], 1)
  86 : 
 
@@ -134,11 +133,11 @@ Python
 ::
 
  01 :  #
- 02 :  # distance : 駅からの徒歩時間 (分)
- 03 :  # space    : 専有面積 (m*m)
- 04 :  # age      : 築年数 (年)
- 05 :  # stair    : 階数
- 06 :  # aspect   : 向き [ N / NE / E / SE / S / SW / W / NW ]
+ 02 :  # distance : distance from station (walking time in minutes)
+ 03 :  # space    : the footprint of the house (m*m)
+ 04 :  # age      : build age (year)
+ 05 :  # stair    : floors
+ 06 :  # aspect   : direction [ N / NE / E / SE / S / SW / W / NW ]
  07 :  #
  08 :  distance : 8
  09 :  space    : 32.00
@@ -148,64 +147,63 @@ Python
 
 
 --------------------------------
-解説
+Explanation
 --------------------------------
 
 **rent.json**
 
-設定は単体のJSONで与えられます。JSONの各フィールドは以下の通りです。
+The configuration information is given by the JSON unit. Here is the meaning of each JSON filed.
 
 * method
 
- 分類に使用するアルコリズムを指定します。
- Regressionで指定できるのは、現在"PA"のみなので"PA"（Passive Agressive）を指定します。
-
+  Specify the algorithm used in regression. 
+  Currently, we have "PA" (Passive Agressive) only, so we specify it with "PA".
 
 * converter
 
- 特徴変換の設定を指定します。
- ここでは、"num_rules"と"string_rules"を設定しています。
+ Specify the configurations in feature converter.
+ In this example, we will set the "num_rules" and "string_rules".
  
- "num_rules"は数値特徴の抽出規則を指定します。
- "key"は"*"つまり、すべての"key"に対して、"type"は"num"なので、指定された数値をそのまま重みに利用する設定です。
- 具体的には、築年数が"2"であれば"2"を、階数が"6"であれば"6"を重みとします。
- 
- "string_rules"は文字列特徴の抽出規則を指定します。
- "key"は"aspect"、"type"は"str"、"sample_weight"は"bin"、"global_weight"は"bin"としています。
- これは、"aspect"という"key"は文字列として扱い、指定された文字列をそのまま特徴として利用し、各key-value毎の重みと今までの通算データから算出される、大域的な重みを常に"1"とする設定です。
+ "num_rules" are used to specify the extraction rules of numercial features.
+ "key" is "*", it means all the "key" are taken into consideration, "type" is "num", it means the number(value) specified will be directly used as the input for training the model. 
+ For example, if the "age = 2", use 2 as the input; if the "stair = 6", use 6 as the input.
+
+ "string_rules" are used to specify the extraction rules of string features.
+ Here, "key = aspect", "type = str", "sample_weight = bin", and "global_weight = bin".
+ Their meaning are: the "aspect" is treated as a string, and used as the input feature without reform; the weight of each key-value feature is specified to be "1"; and the global weight of each feature is specified to be "1".
 
 * parameter
 
- アルゴリズムに渡すパラメータを指定します。methodに応じて渡すパラメータは異なります。
- ここではmethodで“PA”を指定していますので、"sensitivity"と"regularization_weight"を設定します。
+ Specify the parameters to be passed to the algorithm.
+ The method specified here is "PA", with its configuration as ""sensitivity" and "regularization_weight".
  
- sensitivity：許容する誤差の幅を指定する。大きくするとノイズに強くなる代わりに、誤差が残りやすくなる。
- regularization_weight：学習に対する感度パラメータを指定する。大きくすると学習が早くなる代わりに、ノイズに弱くなる。
+ "sensitivity" specifies the tolerable range of error. When its value increases, it becomes resistant to noise, but makes errors remain easily instead.
+ "regularization_weight" specifies the sensitivity parameter in the learning. When its value increases, the learning becomes faster, but the method become susceptible to the noise.
  
- なお、各アルゴリズムのregularization_weightパラメータ（学習に対する感度パラメータ）はアルゴリズム中における役割が異なるため、アルゴリズム毎に適切な値は異なることに注意してください。
+ In addition, the "regularization_weight" above plays various roles in different algorithms, so please be careful in configuring its values in different algorithms.
 
 
 **main.py**
 
-学習と推定の手順を説明します。
 
-Regressionのクライアントプログラムは、jubatus.regressionクラス内で定義されているRegressionClientクラスを利用して作成します。
-使用するメソッドは、学習を行うtrainメソッドと、与えられたデータから推定を行うestimateメソッドの2つです。
+We explain the learning and prediction processes in this example codes.
 
- 1. Jubatus Serverへの接続設定
+ To write the Client program for Regression, we can use the RegressionClient class defined in 'jubatus.regression'. There are two methods used in this program. The 'train' method for learning process, and the 'estimate' method for prediction with the data learnt.
+ 
+ 1. Connect to Jubatus Server
 
-  Jubatus Serverへの接続を行います（34行目）。
-  Jubatus ServerのIPアドレス，Jubatus ServerのRPCポート番号を設定します。
+  Connect to Jubatus Server (Row 34)
+  Setting the IP addr. and RPC port of Jubatus Server.
 
- 2. 学習用データの準備
+ 2. Prepare the training data
 
-  このサンプルでは、オプションとして"-t"を指定しCSVファイルパスを指定した場合のみ、2.～3.の学習を行います。
-  オプションが指定された場合の、学習用データ作成の手順は下記の流れで行います。
-  
-  RegressionClientでは、list<tuple<float, datum>>のListを学習用データとして作成し、RegressionClientのtrainメソッドに与えることで、学習が行われます。
-  今回は賃貸情報サイトのCSVファイルを元に学習用データを作成していきます。
-  賃貸情報の要素として、家賃（rent）、向き（aspect）、駅からの徒歩時間（distance）、占有面積（space）、築年数（age）、階数（stair）があります。
-  下図に、今回作成する学習用データの構造を示します。（rent-data.csvの内容は100件以上ありますが、ここでは4件を例として挙げています）
+  In this sample program, only if the training data source (CSV file) is specified by the option "-t", processes of step 2-3 is taken. Here we explain these processes.
+
+  RegressionClient puts the training data into the List of list<tuple<float, datum>>, and sends the data to train() methods for the model training.
+  In this example, the training data is generated from the CSV file that privided by a housing rental website. 
+  Factors in the rental information includes rent, aspect, distance, space, age and stairs.
+  Figure below shows the training data. (The following are four examples from over one hundred housing info. listed in the rent-data.csv)
+
   
   +------------------------------------------------------------------------+
   |                         list<tuple<float, datum>>                      |
@@ -237,95 +235,100 @@ Regressionのクライアントプログラムは、jubatus.regressionクラス�
   |             |            |               | | "stair"     | | 2         |
   +-------------+------------+---------------+---------------+-------------+
 
-  tuple<float, datum>はDatumとそのラベル（label）の組です。
-  Datumとは、Jubatusで利用できるkey-valueデータ形式のことです。Datumには2つのkey-valueが存在します。
-  1つはキーも値も文字列の文字列データ（string_values）、もう一方は、キーは同様に文字列で、バリューは数値の数値データ（num_values）です。
-  それぞれ、list<tuple<string, string>>とlist<tuple<string, double>>で表します。
-  
-  | 表の1つ目のデータを例に説明すると、向き（aspect）は文字列なのでlist<tuple<string, string>>の
-  | 1番目のListとしてキーに"aspect"、バリューに"SW"を設定します。
-  | それ以外の項目は数値なので、list<tuple<string, double>>の
-  | 1番目のListとしてキーに"distance"、バリューに'10'、
-  | 2番目のListとしてキーに"space"、バリューに'20.04'、
-  | 3番目のListとしてキーに"age"、バリューに'15'、
-  | 4番目のListとしてキーに"stair"、バリューに'1'と設定します。
-  
-  これらの5つのListを保持したDatumにラベルとして家賃である'5.0'を付け加え、家賃が'5.0'である賃貸の条件を保持したtuple<float, datum>ができます。
-  その家賃ごとのデータ（tuple<float, datum>）をListとしたものを学習用データとして使用します。
-  
-  まず、学習用データの元となるCSVファイルを読み込みます（39行目）。
-  for文にて1行ずつループで読み込んで処理します（40-61行目）。
-  CSVファイルなので、取得した1行を','で分割し要素ごとに分け、それぞれ変数に代入します（47行目）。
-  
-  文字列項目と数値項目の要素をそれぞれ、string_valuesとnum_valuesとして定義します（48-56行目）。
-  次に、datum()を使って、Datumクラスを生成します（57行目）。
-  そのDatumにlabelとして家賃（rent）を付与したものを学習用データの1つ（変数train_data）として使用します（58行目）。
+  Tuple<float, datum> contains 2 fields, "Datum" and the "label".
+  "Datum" is composed of key-value data which could be processed by Jubatus, and there are 2 types of key-value data format.
+  In the first type, both the "key" and "value" are in string format (string_values); in the second one, the "key" is in string format, but the "value" is in numerical format (num_values).
+  These two types are represented in list<tuple<string, string>> and list<tuple<string, double>>, respectively.
 
- 3. データの学習（学習モデルの更新）
+  | Please have a view of the first data in this table as an example. Because the "aspect" is in string format, it is stored in the first list of the list<tuple<string, string>>.
+  | in which, the key is set as "aspect", value is set as "SW".
+  | Because other items are numerical, they are stored in the list of the list<tuple<string, double>>, in which
+  | the first list's key is set as "distance" and value is set as "10",
+  | the second list's key is set as "space" and value is set as "20.04",
+  | the third list's key is set as "age" and value is set as "15",
+  | the fourth list's key is set as "stair" and value is set as "1".
 
-  2.の工程で作成した学習用データを、trainメソッドに渡すことで学習が行われます（61行目）。
-  trainメソッドの第1引数は、タスクを識別するZookeeperクラスタ内でユニークな名前を指定します。（スタンドアロン構成の場合、空文字（""）を指定）
-  第2引数として、先ほど②で作成したtrainDataを指定します。
+  The Datum of these 5 Lists is appended with a label of "5.0", as its rent, and forms an instance of tuple<float, datum> which retains the rent (of 5.0 * 10,000) and its corresponding housing condition info.
+  Thus, the housing rental data are generated in the format of (tuple<float, datum>) List, as the training data to be used.
 
- 4. 推定用データの準備
-
-  推定も学習時と同様に、推定用のDatumを作成します。
-  ここでは、推定用のデータをYAMLファイルから読み込む方法で実装します。
-  YAML（ヤムル）とは、構造化データやオブジェクトを文字列にシリアライズ（直列化）するためのデータ形式の一種です。
+  Here is the detailed process for making the training data in this sample.
   
-  あらかじめ作成したYAMLファイル（myhome.yml）をyaml.load()で読み込むとdict型で返却します（68行目）。
-  その要素から②の処理と同じ様に文字列項目と数値項目を作成しDatumを作成します（69-78行目）。
+  First, declare the variable of training data "trainDat", as a TupleFloatDatum List (Row 39).
+  Next, read the source file (CSV file) of the training data line by line (Row 40-61).
+  Split the data read from each line in CSV file, by the ',' mark (Row 47).
+
+  The string items and double items are stored into the Datum components of string_values and num_values (Row 48-56), respectively. Then, a Datum class is generated by datum() method (Row 57). Finally, the Datum is appended with the rent label, so as to be used as one piece of training data (argument 'train' in Row 58).
   
-  作成したDatumを推定用データのListに追加し、RegressionClientのestimateメソッドに与えることで、推定が行われます。
+ 3. Model Training (update learning model
+
+  Input the training data generated in step.2 into the train() method (Row 61).
+  The first parameter in train() is the unique name for task identification in Zookeeper.
+  (use null charactor "" for the stand-alone mode)
+  The second parameter specifies the trainData generated in step.2.
+ 
+ 4. Prepare the prediction data 
+
+  Prepare the prediction data in the similar way of training Datum creation.
+  Here, we generate the data for prediction by using the YAML file (please download the library `JYaml <http://jyaml.sourceforge.net/download.html>`_ )
+  YAML is one kind of data format, in which objects and structure data are serialized.
   
- 5. 学習モデルに基づく推定
+  Read the YAML file (myhome.yml) by yaml.load() and get the return value in dict type (Row 68).
+  Generate the prediction Datum by using the simliar process as in step 2 (Row 69-78).
+  
+  Add the Datum into the prediction data list, and send it into the estimate() method in "RegressionClient" for prediction.
+  
+ 5. Prediction by the regression model
 
-  4.で作成したDatumのListを、estimateメソッドに渡すことで、推定結果のListを得ることができます（82行目）。
+  The prediction results are returned as a list by the estimate() method (Row 82).
 
- 6. 結果の出力
+ 6. Output the result
 
-  5.で取得した、推定結果のリストは推定用データの順番で返却されます。（サンプルでは推定用データは1データなので1つしか返却されません）
-  推定結果はFloat型なので、出力のために小数第二位で四捨五入しています（85行目）。
+  The prediction results are returned in the same order of the prediction data. (In this sample, only one prediction data is used, thus only one result is returned.)
+  The result is rounded at 2nd decimal for output, because it is in Float type (Row 85).
+
 
 ------------------------------------
-サンプルプログラムの実行
+Run the sample program
 ------------------------------------
-**［Jubatus Serverでの作業］**
 
- jubaregressionを起動します。
+**［At Jubatus Server］**
+ 
+ start "jubaregression" process.
+
 
  ::
 
   $ jubaregression --configpath rent.json
 
 
-**［Jubatus Clientでの作業］**
+**［At Jubatus Client］**
 
- このサンプルでは、コマンドラインアプリケーションをインストールして利用します。
+ Install the command line aplication for using this sample program.
 
  ::
 
   $ sudo python setup.py install
 
- オプションを指定し下記のコマンドで実行します。
+ Specify the option by using the command below.	
  
  ::
 
   $ jubahomes -t dat/rent-data.csv -a dat/myhome.yml
 
 
- **-t** ：CSVファイルパス（学習データありの場合）
+ **-t** ：CSV file name (if there is training data)
 
- **-a** ：YMLファイルパス（必須）
+ **-a** ：YML file name (required)
 
-**［実行結果］**
+**［Result］**
+
 
  ::
 
   train ... 145
   rent .... 9.9
 
- dat/myhome.yaml を変更し、いろんな条件で物件の家賃を推測できます。
+ You can change the dat/myhome.yaml file to predict housing rent under various conditions.
 
  ::
 

@@ -1,47 +1,46 @@
-Stat
+﻿Stat
 =================
 
-ここではJubatusの統計分析機能（Stat）である、jubastatを使用した、Jubatus Clientの使い方を説明します。
+In this sample program, we will introduce how to use the statistical analysis function 'stat' through the Jubatus Client.
 
-統計分析機能（Stat）とは、時系列データのウィンドウ設定つき統計分析機能であり、センサー監視や異常データ検知などに利用することができます。
+By setting windows on time-series data for the statistical analysis, you can utilize the abnormal data detection and sensor monitoring, and etc.
 
 
 -----------------------------------
-サンプルプログラムの概要
+Abstract of sample program
 -----------------------------------
 
+In this sample, we will study the 'price', 'weight', 'diameter' of orange, apples and melon. Program [trivial_stat] is used for the statistical analysis, such as standard deviation and tatal value of the parameter, in each fruit.
 
-サンプルとして、オレンジ・りんご・メロンの直径・重さ・価格を学習し、フルーツ毎にパラメータの合計値や標準偏差など統計分析をするプログラム「trivial_stat」を用いて説明していきます。
+At first, please download the artificially created fruit-data from (`fruit.csv <https://raw.github.com/jubatus/jubatus-example/master/trivial_stat/dat/fruit.csv>`_). It is used to training the statistical model at the server site. 
 
-最初に、サンプル用に人工的に作成したデータセット (`fruit.csv <https://raw.github.com/jubatus/jubatus-example/master/trivial_stat/dat/fruit.csv>`_) をクライアント側で用意し、統計分析するためのモデルをサーバ側に学習させます。
+Next, StatClient methods will be called to return the total value and the standard deviation of each fruit.
 
-次に、StatClientのメソッドでそれぞれのフルーツに対して合計や標準偏差などを返却するメソッドを呼び出します。
-
-
---------------------------------
-処理の流れ
---------------------------------
-
-Jubatus Clientを使ったコーディングは、主に以下の流れになります。
-
- 1. Jubatus Serverへの接続設定
-
-  サーバ側で起動している Jubatus ServerのHOSTやPORTを指定し、接続設定をします。
-
- 2. 学習用データの準備
-
-  fruit.csvから1行ずつ読み出し学習用データを作成します。
-
- 3. データの学習（学習モデルの更新）
-
-  作成した学習用データをpushメソッドでサーバ側に与え、学習を行います。
-
- 4. 結果の出力
-
-  statClientの合計や標準偏差を求めるメソッドを呼び出し、結果を出力します。
 
 --------------------------------
-サンプルプログラム
+Processing flow 
+--------------------------------
+
+Main flow of using Jubatus Client
+
+ 1. Connection settings to Jubatus Server
+
+  Setting the HOST, RPC port of Jubatus Server
+
+ 2. Prepare the training data
+
+  Read the fruit-data from the downloaded .CSV file line by line.
+
+ 3. Data training (update the model)
+
+  Use the push() method to send the fruit-data to the server site and training the model there.
+
+ 4. Output the result
+
+  Use the methods in statClient to get total-value, standard deviation, etc.; and output the result
+
+--------------------------------
+Sample Program
 --------------------------------
 
 .. toctree::

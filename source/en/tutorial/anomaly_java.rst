@@ -1,17 +1,17 @@
 Java
 ==================
 
-ここではJava版のAnomalyサンプルプログラムの解説をします。
+Here we explain the java sample program of anomaly detection.
 
 --------------------------------
-ソースコード
+Source_code
 --------------------------------
 
-このサンプルプログラムでは、学習の設定をするconfig.jsonと外れ値検知を行うlof.javaを利用します。以下にソースコードを記載します。
+In this sample program, we will explain 1) how to configure the learning-algorithms in Jubatus with the config file 'config.json'; 2) how to detect the anomaly data with the example file ‘lof.java’. Here are the source codes of 'config.json' and 'lof.java'.
 
 **config.json**
 
-.. code-block:: python
+.. code-block:: java
 
  01 : {
  02 :  "method" : "lof",
@@ -66,7 +66,7 @@ Java
  017 : 	public static final String FILE_PATH = "./src/main/resources/";
  018 : 	public static final String TEXT_NAME = "kddcup.data_10_percent.txt";
  019 : 
- 020 : 	// TEXTのカラム名定義
+ 020 : 	// declare all the data items consisted in each piece of training data
  021 : 	public static String[] TEXT_COLUMN = {
  022 : 		"duration",
  023 : 		"protocol_type",
@@ -112,7 +112,7 @@ Java
  063 : 		"label"
  064 : 	};
  065 : 
- 066 : 	// String型の項目
+ 066 : 	// items in String type
  067 : 	public static String[] STRING_COLUMN = {
  068 : 		"protocol_type",
  069 : 		"service",
@@ -123,7 +123,7 @@ Java
  074 : 		"is_guest_login"
  075 : 	};
  076 : 
- 077 : 	// Double型の項目
+ 077 : 	// items in Double type
  078 : 	public static String[] DOUBLE_COLUMN = {
  079 : 		"duration",
  080 : 		"src_bytes",
@@ -162,10 +162,10 @@ Java
  113 : 	};
  114 : 
  115 : 	public void execute() throws Exception {
- 116 : 		// 1. Jubatus Serverへの接続設定
+ 116 : 		// 1. Connect to Jubatus Server
  117 : 		AnomalyClient client = new AnomalyClient(HOST, PORT, 5);
  118 : 
- 119 : 		// 2. 学習用データの準備
+ 119 : 		// 2. Prepare learning data
  120 : 		Datum datum = null;
  121 : 		TupleStringFloat result = null;
  122 : 
@@ -177,15 +177,15 @@ Java
  128 : 
  129 : 			String line = "";
  130 : 
- 131 : 			// 最終行までループでまわし、1行ずつ読み込む
+ 131 : 			// read the data row by row until the last one
  132 : 			while ((line = br.readLine()) != null) {
  133 : 				strList.clear();
  134 : 				doubleList.clear();
  135 : 
- 136 : 				// 1行をデータの要素に分割
+ 136 : 				// split the data items in each row
  137 : 				String[] strAry = line.split(",");
  138 : 
- 139 : 				// StringとDoubleの項目ごとにListを作成
+ 139 : 				// make the String and Double Lists to store the data items 
  140 : 				for (int i = 0; i < strAry.length; i++) {
  141 : 					if (Arrays.toString(STRING_COLUMN).contains(TEXT_COLUMN[i])) {
  142 : 						strList.add(strAry[i]);
@@ -193,13 +193,13 @@ Java
  144 : 						doubleList.add(strAry[i]);
  145 : 					}
  146 : 				}
- 147 : 				// datumを作成
+ 147 : 				// make the datum
  148 : 				datum = makeDatum(strList, doubleList);
  149 : 
- 150 : 				// 3. データの学習（学習モデルの更新）
+ 150 : 				// 3. Model training(update learning model)
  151 : 				result = client.add(NAME, datum);
  152 : 
- 153 : 				// 4. 結果の出力
+ 153 : 				// 4. Display result
  154 : 				if ( !(Float.isInfinite(result.second)) && result.second != 1.0) {
  155 : 					System.out.print( "('" + result.first + "', " + result.second + ") " + strAry[strAry.length -1] + "\n" );
  156 : 				}
@@ -207,17 +207,17 @@ Java
  158 : 			br.close();
  159 : 
  160 : 		} catch (FileNotFoundException e) {
- 161 : 			// Fileオブジェクト生成時の例外捕捉
+ 161 : 			// capture the exception in File object creation
  162 : 			e.printStackTrace();
  163 : 		} catch (IOException e) {
- 164 : 			// BufferedReaderオブジェクトのクローズ時の例外捕捉
+ 164 : 			// capture the exception in closing BufferedReader object
  165 : 			e.printStackTrace();
  166 : 		}
  167 : 		return;
  168 : 	}
  169 : 
  170 : 
- 171 : 	// Datumを指定された名称で、リスト分作成
+ 171 : 	// Make the Datum with the assigned lists
  172 : 	private Datum makeDatum(List<String> strList, List<String> doubleList) {
  173 : 
  174 : 		Datum datum = new Datum();
@@ -248,7 +248,7 @@ Java
  199 : 		return datum;
  200 : 	}
  201 : 
- 202 : 	// メインメソッド
+ 202 : 	// main method
  203 : 	public static void main(String[] args) throws Exception {
  204 : 
  205 : 		new Lof().execute();
@@ -257,94 +257,88 @@ Java
  208 : }
 
 --------------------------------
-解説
+Explanation
 --------------------------------
 
 **config.json**
 
-設定は単体のJSONで与えられます。JSONの各フィールドは以下のとおりです。
+The configuration information is given by the JSON unit. Here is the meaning of each JSON filed.
 
-* method
+ * method
 
- 分類に使用するアルコリズムを指定します。
- Regressionで指定できるのは、現在"LOF"のみなので"LOF"（Local Outlier Factor）を指定します。
+  Specify the algorithm used in anomaly detection. Currently, "LOF"(Local Outlier Factor) is the only one algorithm for anomaly detection, so, we write "LOF" here.
 
-
-* converter
-
- 特徴変換の設定を指定します。
- ここでは、"num_rules"と"string_rules"を設定しています。
+ * converter
  
- "num_rules"は数値特徴の抽出規則を指定します。
- "key"は"*"つまり、すべての"key"に対して、"type"は"num"なので、指定された数値をそのまま重みに利用する設定です。
- 具体的には、valueが"2"であれば"2"を、"6"であれば"6"を重みとします。
- 
- "string_rules"は文字列特徴の抽出規則を指定します。
- "key"は"*"、"type"は"str"、"sample_weight"は"bin"、"global_weight"は"bin"としています。
- これは、すべての文字列に対して、指定された文字列をそのまま特徴として利用し、各key-value毎の重みと今までの通算データから算出される、大域的な重みを常に"1"とする設定です。
+  Specify the configurations in feature converter. In this sample, we will set "num_rules" and "string_rules". 
 
-* parameter（要修正）
+  "num_rules" specifies the value extracting rules for values in numerical format.
+  "key" is set as "*" here, which means all the "key" will be taken into account. "type" is set as "num", which means each value has its weight as equal as the value itself. For example, if data's value i "2", its weight is set as 2; if data's value is "6", its weight is set as 6.
+
+ 
+  "string_rules" specifies the value extracting rules for values in string format.
+  Here, "key" is set as "*", "type" is "str", "sample_weight" is "bin", and "global_weight" is "bin".
+  This means, all the "key" will be taken into account, the features in strings values will be used without convertion, the weight of each key-value will be calculated throughout the whole data have been used, and the global weight is a constant value of "1".
+
+ * parameter(could be modified)
 
  ･･･
-
   
 
 **anomaly.java**
 
- anomaly.javaでは、textから読み込んだデータをJubatusサーバ与え、外れ値を検出し出力します。
+ anomaly.java will extract the data from text file, send them to Jubatus server, and get their anomaly detection result from the server.
 
- 1. Jubatus Serverへの接続設定
+ 1. Connect to Jubatus Server
 
-  Jubatus Serverへの接続を行います（117行目）。
-  Jubatus ServerのIPアドレス、Jubatus ServerのRPCポート番号、接続待機時間を設定します。
+  Connect to Jubatus Server (Row 117).
+  Setting the IP addr., RPC port of Jubatus Server, and the connection waiting time.
+
+ 2. Prepare the learning data
+
+  AnomalyClient will send the Datum to Jubatus server for data learning or anomaly detection, by using its "add" method.
+  In this example, the result-data in KDD Cup(Knowledge Discovery and Data Mining Cup) is used as the trainning data. At first, the program read the training data from the TEXT file, one line at a time, by using FileReader() and BuffererdReader() methods (Row 132-157). The data in TEXT file are seperated by commas, so we split the items by ’,’ (Row 137).
+  By using the whole items definition list: TEXT file(TEXT_COLUMN); as well as the "String" and "Double" items definition list (STRING_COLUMN、DOUBLE_COLUMN), we store the items in different list due to their types (Row 140-145).
+  Put the two lists into one Datum unit and add arguments for each items in the lists, as done by the private method [makeDatum](Row 171).
+
+  In the [makeDatum], we will store the data items into the string-list and double-list, which are in the format of TupleStringString and TupleStringDouble (Row 172-200).
+  At first, we generate the string_values and num_values lists, as the factors required in a Datum class (Row 174-176).
+  Then, we combine the corresponding items in "STRING_COLUMN" and "strList" as key-value pairs to generate the TupleStringString list (Row 178-184). And combine the corresponding items in "Double_COLUMN" and "doubleList" as key-value pairs to generate the TupleStringDouble list. Note that, because the data in doublelist is in String format, data convertion is required when put it into Datum unit (Row 190).
   
- 2. 学習用データの準備
-
-  AnomalyClientでは、Datumをaddメソッドに与えることで、学習および外れ値検知が行われます。
-  今回はKDDカップ（Knowledge Discovery and Data Mining Cup）の結果（TEXTファイル）を元に学習用データを作成していきます。
-  まず、学習用データの元となるTEXTファイルを読み込みます。
-  ここでは、FileReaderとBuffererdReaderを利用して1行ずつループで読み込んで処理します（132-157行目）。
-  このTEXTファイルはカンマ区切りで項目が並んでいるので、取得した1行を’,’で分割し要素ごとに分けます（137行目）。
-  定義したTEXTファイルの項目リスト（TEXT_COLUMN）とStringとDoubleの項目を定義したリスト（STRING_COLUMN、DOUBLE_COLUMN）を用い、型ごとにリストを作成します（140-145行目）。
-  作成した２つのリストを引数としてDatumを作成するprivateメソッド「makeDatum」を呼び出します（91行目）。
-   
-  「makeDatum」では、引数のString項目のリストとDouble項目のリストから、String項目はTupleStringStringのListを、Double項目はTupleStringDoubleのListを作成します（172-200行目）。
-  まず、Datumクラスを生成してDatumの要素であるstring_valuesとnum_valuesのListをそれぞれ生成します（174-176行目）。
-  次に、定義しているString項目リスト（STRING_COLUMN）と引数のstrListの順番は対応しているので、ループでTupleStringStringを生成し、要素firstにキー（カラム名）をsecondにバリュー（値）を設定してstring_valuesのListに追加します（178-184行目）。
-  Double項目リストもString項目と同様にループでTupleStringDoubleを生成し、要素を設定してからnum_valuesに追加します。ここで注意する点は、引数はString型のListですがDatumのnum_valuesはDouble型の為、変換が必要になります（190行目）。
-  これで、Datumの作成が完了しました。
+  Now, our learning data is ready in the Datum format.
 
   
- 3. データの学習（学習モデルの更新）
+ 3. Model training (update learning model)
 
-  AnomalyClientのaddメソッドに2. で作成したデータを渡します（151行目）。
-  addメソッドの第1引数は、タスクを識別するZookeeperクラスタ内でユニークな名前を指定します。（スタンドアロン構成の場合、空文字（""）を指定）
-  第2引数として、先ほど2. で作成したDatumを指定します。
-  戻り値として、tuple<string, float>型で点IDと異常値を返却します。
+  Input the training data generated in step.2 into the add() method of AnomalyClient (Row 151).
+  The first parameter in add() is the unique name for task identification in Zookeeper.
+  (use null charactor "" for the stand-alone mode)
+  The second parameter specifies the Datum generated in step.2.
+  The returned result <string, float> is consisted of the data ID and its estimated anomaly value.
   
- 4. 結果の出力
+ 4. Display result
 
-  addメソッドの戻り値である異常値から外れ値かどうかを判定します（154行目）。
-  異常値が無限ではなく、1.0以外の場合は外れ値と判断し出力します（155行目）。
+  Display the returned value from add() method after a correction checking (Row 154).
+  The anomaly value should not be infinity or　1.0　(Row 155).
 
 -------------------------------------
-サンプルプログラムの実行
+Run the sample program
 -------------------------------------
 
-**［Jubatus Serverでの作業］**
+**［At Jubatus Server］**
+ start "jubaanomaly" process.
 
- jubaanomalyを起動します。
- 
- ::
+::
  
   $ jubaanomaly --configpath config.json
- 
 
-**［Jubatus Clientでの作業］**
 
- 必要なパッケージとJavaクライアントを用意し、実行します。
+**［At Jubatus Client］**
+ Get the required package and Java client ready.
+ Run!
+
  
-**［実行結果］**
+**［Result］**
 
 ::
 
@@ -363,4 +357,4 @@ Java
  ('3816', 1.0017062) normal.
  ('3906', 0.5671135) normal.
  …
- …（以下略）
+ …(omitted)

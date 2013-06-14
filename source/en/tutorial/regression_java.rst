@@ -1,15 +1,14 @@
-Java
+﻿Java
 ================================
 
-ここではJava版のRegressionサンプルプログラムの解説をします。
+Here we explain the sample program of Regression in Java. 
 
 --------------------------------
-ソースコード
+Source_code
 --------------------------------
 
-このサンプルプログラムでは、学習アルゴリズム等の設定をするrent.jsonとデータの学習及び学習モデルに基づく推定を行うrent.java、
-また学習用データとしてrent-data.csv、推定用データとしてmyhome.ymlを使用します。
-以下にrent.jsonとrent.javaおよびmyhome.ymlのソースコードを記載します。
+In this sample program, we will explain 1) how to configure the learning-algorithms that used by Jubatus, with the example file 'rent.json'; 2) how to train the model by 'rent.java' with the training data in 'rent-data.csv' file, and how to predict with the estimation data in 'myhome.yml' file. Here are the source codes of 'rent.json', 'rent.java' and 'myhome.yml'.
+
 
 **rent.json**
 
@@ -70,7 +69,7 @@ Java
  027 : 	public static final String NAME = "rent";
  028 : 	public static final String FILE_PATH = "./src/main/resources/";
  029 : 
- 030 : 	// CSVのカラム名定義
+ 030 : 	// Definie the column name in CSV file
  031 : 	public static String[] CSV_COLUMN = {
  032 : 		"rent",
  033 : 		"distance",
@@ -80,12 +79,12 @@ Java
  037 : 		"aspect"
  038 : 		};
  039 : 
- 040 : 	// String型の項目
+ 040 : 	// Item in String type
  041 : 	public static String[] STRING_COLUMN = {
  042 : 		"aspect"
  043 : 		};
  044 : 
- 045 : 	// Double型の項目
+ 045 : 	// Items in Double type
  046 : 	public static String[] DOUBLE_COLUMN = {
  047 : 		"distance",
  048 : 		"space",
@@ -94,10 +93,10 @@ Java
  051 : 		};
  052 : 
  053 : 	public void update(String cvsName) throws Exception {
- 054 : 		// 1.Jubatus Serverへの接続設定
+ 054 : 		// 1. Connect to Jubatus Server
  055 : 		RegressionClient client = new RegressionClient(HOST, PORT, 5);
  056 : 
- 057 : 		// 2.学習用データの準備
+ 057 : 		// 2. Prepare the training data
  058 : 		List<TupleFloatDatum> trainData = new ArrayList<TupleFloatDatum> ();
  059 : 		Datum datum = null;
  060 : 
@@ -110,21 +109,21 @@ Java
  067 : 
  068 : 			String line = "";
  069 : 
- 070 : 			// 最終行までループでまわし、1行ずつ読み込む
+ 070 : 			// read data line by line, until the last one.
  071 : 			while ((line = br.readLine()) != null) {
  072 : 				strList.clear();
  073 : 				doubleList.clear();
  074 : 				TupleFloatDatum train = new TupleFloatDatum();
  075 : 
- 076 : 				// 1行をデータの要素に分割
+ 076 : 				// split the data in one line into items
  077 : 				String[] strAry = line.split(",");
  078 : 
- 079 : 				// CSVのカラム数、コメントのチェック
+ 079 : 				// check the number of CSV columns and the comment
  080 : 				if( strAry.length != CSV_COLUMN.length || strAry[0].startsWith("#")){
  081 : 					continue;
  082 : 				}
  083 : 
- 084 : 				// StringとDoubleの項目ごとにListを作成
+ 084 : 				// make lists for String and Double items
  085 : 				for (int i=0; i<strAry.length; i++) {
  086 : 					if(Arrays.toString(STRING_COLUMN).contains(CSV_COLUMN[i])){
  087 : 						strList.add(strAry[i]);
@@ -132,7 +131,7 @@ Java
  089 : 						doubleList.add(strAry[i]);
  090 : 					}
  091 : 				}
- 092 : 				// datumを作成
+ 092 : 				// make datum
  093 : 				datum = makeDatum(strList, doubleList);
  094 : 
  095 : 				train.first = Float.parseFloat(strAry[0]);
@@ -142,19 +141,19 @@ Java
  099 : 			}
  100 : 			br.close();
  101 : 
- 102 : 			// 学習データをシャッフル
+ 102 : 			// shuffle the training data
  103 : 			Collections.shuffle(trainData);
  104 : 
- 105 : 			// 3.データの学習（学習モデルの更新）
+ 105 : 			// 3.Data training (update model)
  106 : 			int trainCount = client.train( NAME, trainData);
  107 : 
  108 : 			System.out.print("train ... " + trainCount + "\n");
  109 : 
  110 : 		 } catch (FileNotFoundException e) {
- 111 : 			 // Fileオブジェクト生成時の例外捕捉
+ 111 : 			 // catch the exception in File object creation
  112 : 			 e.printStackTrace();
  113 : 		 } catch (IOException e) {
- 114 : 			 // BufferedReaderオブジェクトのクローズ時の例外捕捉
+ 114 : 			 // catch the exception when closing BufferedReader object
  115 : 			 e.printStackTrace();
  116 : 		 }
  117 : 		return;
@@ -164,38 +163,38 @@ Java
  121 : 	public void analyze(String yamlName) throws Exception {
  122 : 		RegressionClient client = new RegressionClient(HOST, PORT, 5);
  123 : 
- 124 : 		// 4.推定用データの準備
+ 124 : 		// 4.Prepare the estimation data
  125 : 		List<Datum> datumList = new ArrayList<Datum> ();
- 126 : 		// 結果リスト
+ 126 : 		// result list
  127 : 		List<Float> result = new ArrayList<Float> ();
  128 : 
  129 : 		try {
- 130 : 			// YAMLファイルから設定を読み込む
+ 130 : 			// read the configuration from YAML file
  131 : 			Map<String, Object> hash = (HashMap<String, Object>) Yaml.load(new File(FILE_PATH + yamlName ));
  132 : 
- 133 : 			// 推定用データ作成
+ 133 : 			// make the estimation data
  134 : 			datumList.add(makeDatum(hash));
  135 : 
- 136 : 			// 5.学習モデルに基づく推定
+ 136 : 			// 5.Predict by the model learned
  137 : 			result.addAll(client.estimate( NAME, datumList));
  138 : 
- 139 : 			// 結果をBigDecimal型にする
+ 139 : 			// change the result into BigDecimal type
  140 : 			BigDecimal bd = new BigDecimal(result.get(0));
- 141 : 			// 少数第2位で四捨五入
+ 141 : 			// rounding at the 2nd decimal
  142 : 			BigDecimal bd2 = bd.setScale(1, BigDecimal.ROUND_HALF_UP);
  143 : 
- 144 : 			// 6.結果の出力
+ 144 : 			// 6.Output result
  145 : 			System.out.print("rent .... " + bd2 );
  146 : 
  147 : 		} catch (FileNotFoundException e) {
- 148 : 			 // Fileオブジェクト生成時の例外捕捉
+ 148 : 			 // capture the exception in File object creation.
  149 : 			 e.printStackTrace();
  150 : 		}
  151 : 
  152 : 		return;
  153 : 	}
  154 : 
- 155 : 	// Datumを指定された名称で、リスト分作成（List用）
+ 155 : 	// Create the lists with the name given in the Datum (for list)
  156 : 	private Datum makeDatum(List<String> strList, List<String> doubleList) {
  157 : 
  158 : 		Datum datum = new Datum();
@@ -226,7 +225,7 @@ Java
  183 : 		return datum;
  184 : 	}
  185 : 
- 186 : 	// Datumを指定された名称で、リスト分作成（Map用）
+ 186 : 	// Create the lists with the name given in the Datum (for Map)
  187 : 	private Datum makeDatum(Map<String, Object> hash) {
  188 : 
  189 : 		Datum datum = new Datum();
@@ -234,7 +233,7 @@ Java
  191 : 		datum.num_values = new ArrayList<TupleStringDouble>();
  192 : 
  193 : 		for( int i = 0 ; i < STRING_COLUMN.length ; i++) {
- 194 : 			// HashMapに項目が含まれている、かつNULLでない場合Datumに追加
+ 194 : 			// Insert into Datum only if it is contained by HashMap and not NULL
  195 : 			if( hash.containsKey(STRING_COLUMN[i]) && hash.get(STRING_COLUMN[i]) != null ) {
  196 : 				TupleStringString data = new TupleStringString();
  197 : 
@@ -247,7 +246,7 @@ Java
  204 : 
  205 : 		try {
  206 : 			for( int i = 0 ; i < DOUBLE_COLUMN.length ; i++) {
- 207 : 				// HashMapに項目が含まれている、かつNULLでない場合Datumに追加
+ 207 : 				// Insert into Datum only if it is contained by HashMap and not NULL
  208 : 				if( hash.containsKey(DOUBLE_COLUMN[i]) && hash.get(DOUBLE_COLUMN[i]) != null ) {
  209 : 					TupleStringDouble data = new TupleStringDouble();
  210 : 
@@ -265,17 +264,17 @@ Java
  222 : 		return datum;
  223 : 	}
  224 : 
- 225 : 	// メインメソッド
+ 225 : 	// Main methods
  226 : 	public static void main(String[] args) throws Exception {
  227 : 
  228 : 		if(args.length < 1){
- 229 : 			System.out.print("引数を指定してください。\n" +
- 230 : 							"第１引数：YMLファイル名（必須）\n" +
- 231 : 							"第２引数：CSVファイル名（学習データありの場合）\n");
+ 229 : 			System.out.print("Please set the arguments.\n" +
+ 230 : 							"1st argument： YML file name (required)\n" +
+ 231 : 							"2nd argument： CSV file name (when there is training data)\n");
  232 : 			return;
  233 : 		}
  234 : 
- 235 : 		// 第２引数がある場合、学習モデル更新メソッドを起動
+ 235 : 		// when there is the 2nd argument, start the update method for model training.
  236 : 		if(args.length > 1 && !"".equals(args[1])){
  237 : 			new rent().update(args[1]);
  238 : 		}
@@ -293,11 +292,11 @@ Java
 ::
 
  01 :  #
- 02 :  # distance : 駅からの徒歩時間 (分)
- 03 :  # space    : 専有面積 (m*m)
- 04 :  # age      : 築年数 (年)
- 05 :  # stair    : 階数
- 06 :  # aspect   : 向き [ N / NE / E / SE / S / SW / W / NW ]
+ 02 :  # distance : distance from station (walking time in minutes)
+ 03 :  # space    : the footprint of the house (m*m)
+ 04 :  # age      : build age (year)
+ 05 :  # stair    : floors
+ 06 :  # aspect   : direction [ N / NE / E / SE / S / SW / W / NW ]
  07 :  #
  08 :  distance : 8
  09 :  space    : 32.00
@@ -307,61 +306,59 @@ Java
 
 
 --------------------------------
-解説
+Explanation
 --------------------------------
 
 **rent.json**
 
-設定は単体のJSONで与えられます。JSONの各フィールドは以下の通りです。
+The configuration information is given by the JSON unit. Here is the meaning of each JSON filed.
 
 * method
 
- 分類に使用するアルコリズムを指定します。
- Regressionで指定できるのは、現在"PA"のみなので"PA"（Passive Agressive）を指定します。
-
+  Specify the algorithm used in regression. 
+  Currently, we have "PA" (Passive Agressive) only, so we specify it with "PA".
 
 * converter
 
- 特徴変換の設定を指定します。
- ここでは、"num_rules"と"string_rules"を設定しています。
+ Specify the configurations in feature converter.
+ In this example, we will set the "num_rules" and "string_rules".
  
- "num_rules"は数値特徴の抽出規則を指定します。
- "key"は"*"つまり、すべての"key"に対して、"type"は"num"なので、指定された数値をそのまま重みに利用する設定です。
- 具体的には、築年数が"2"であれば"2"を、階数が"6"であれば"6"を重みとします。
- 
- "string_rules"は文字列特徴の抽出規則を指定します。
- "key"は"aspect"、"type"は"str"、"sample_weight"は"bin"、"global_weight"は"bin"としています。
- これは、"aspect"という"key"は文字列として扱い、指定された文字列をそのまま特徴として利用し、各key-value毎の重みと今までの通算データから算出される、大域的な重みを常に"1"とする設定です。
+ "num_rules" are used to specify the extraction rules of numercial features.
+ "key" is "*", it means all the "key" are taken into consideration, "type" is "num", it means the number(value) specified will be directly used as the input for training the model. 
+ For example, if the "age = 2", use 2 as the input; if the "stair = 6", use 6 as the input.
+
+ "string_rules" are used to specify the extraction rules of string features.
+ Here, "key = aspect", "type = str", "sample_weight = bin", and "global_weight = bin".
+ Their meaning are: the "aspect" is treated as a string, and used as the input feature without reform; the weight of each key-value feature is specified to be "1"; and the global weight of each feature is specified to be "1".
 
 * parameter
 
- アルゴリズムに渡すパラメータを指定します。methodに応じて渡すパラメータは異なります。
- ここではmethodで“PA”を指定していますので、"sensitivity"と"regularization_weight"を設定します。
+ Specify the parameters to be passed to the algorithm.
+ The method specified here is "PA", with its configuration as ""sensitivity" and "regularization_weight".
  
- sensitivity：許容する誤差の幅を指定する。大きくするとノイズに強くなる代わりに、誤差が残りやすくなる。
- regularization_weight：学習に対する感度パラメータを指定する。大きくすると学習が早くなる代わりに、ノイズに弱くなる。
+ "sensitivity" specifies the tolerable range of error. When its value increases, it becomes resistant to noise, but makes errors remain easily instead.
+ "regularization_weight" specifies the sensitivity parameter in the learning. When its value increases, the learning becomes faster, but the method become susceptible to the noise.
  
- なお、各アルゴリズムのregularization_weightパラメータ（学習に対する感度パラメータ）はアルゴリズム中における役割が異なるため、アルゴリズム毎に適切な値は異なることに注意してください。
+ In addition, the "regularization_weight" above plays various roles in different algorithms, so please be careful in configuring its values in different algorithms.
 
 
 **rent.java**
 
-学習と推定の手順を説明します。
+We explain the learning and prediction processes in this example codes.
 
- Regressionのクライアントプログラムは、us.jubat.regressionクラス内で定義されているRegressionClientクラスを利用して作成します。
- 使用するメソッドは、学習を行うtrainメソッドと、与えられたデータから推定を行うestimateメソッドの2つです。
+ To write the Client program for Regression, we can use the RegressionClient class defined in 'us.jubat.regression'. There are two methods used in this program. The 'train' method for learning process, and the 'estimate' method for prediction with the data learnt.
+ 
+ 1. Connect to Jubatus Server
 
- 1. Jubatus Serverへの接続設定
+  Connect to Jubatus Server (Row 55)
+  Setting the IP addr., RPC port of Jubatus Server, and the connection waiting time.
 
-  Jubatus Serverへの接続を行います（55行目）。
-  Jubatus ServerのIPアドレス，Jubatus ServerのRPCポート番号，接続待機時間を設定します。
+ 2. Prepare the training data
 
- 2. 学習用データの準備
-
-  RegressionClientでは、TupleFloatDatumのListを学習用データとして作成し、RegressionClientのtrainメソッドに与えることで、学習が行われます。
-  今回は賃貸情報サイトのCSVファイルを元に学習用データを作成していきます。
-  賃貸情報の要素として、家賃（rent）、向き（aspect）、駅からの徒歩時間（distance）、占有面積（space）、築年数（age）、階数（stair）があります。
-  下図に、今回作成する学習用データの構造を示します。（rent-data.csvの内容は100件以上ありますが、ここでは4件を例として挙げています）
+  RegressionClient puts the training data into TupleFloatDatum List, and sends the data to train() methods for the model training.
+  In this example, the training data is generated from the CSV file that privided by a housing rental website. 
+  Factors in the rental information includes rent, aspect, distance, space, age and stairs.
+  Figure below shows the training data. (The following are four examples from over one hundred housing info. listed in the rent-data.csv)
   
   +----------------------------------------------------------------------+
   |                         TupleFloatDatum                              |
@@ -393,90 +390,94 @@ Java
   |             |            |             | | "stair"     | | 2         |
   +-------------+------------+-------------+---------------+-------------+
 
-  TupleFloatDatumはDatumとそのラベル（label）の組です。
-  Datumとは、Jubatusで利用できるkey-valueデータ形式のことです。Datumには2つのkey-valueが存在します。
-  1つはキーも値も文字列の文字列データ（string_values）、もう一方は、キーは同様に文字列で、バリューは数値の数値データ（num_values）です。
-  それぞれ、TupleStringStringクラスとTupleStringDoubleクラスで表します。
+  TupleFloatDatum contains 2 fields, "Datum" and the "label".
+  "Datum" is composed of key-value data which could be processed by Jubatus, and there are 2 types of key-value data format.
+  In the first type, both the "key" and "value" are in string format (string_values); in the second one, the "key" is in string format, but the "value" is in numerical format (num_values).
+  These two types are represented in TupleStringString class and TupleStringDouble class, respectively.
   
-  | 表の1つ目のデータを例に説明すると、向き（aspect）は文字列なのでTupleStringStringクラスの
-  | 1番目のListとしてキーに"aspect"、バリューに"SW"を設定します。
-  | それ以外の項目は数値なので、TupleStringDoubleクラスの
-  | 1番目のListとしてキーに"distance"、バリューに'10'、
-  | 2番目のListとしてキーに"space"、バリューに'20.04'、
-  | 3番目のListとしてキーに"age"、バリューに'15'、
-  | 4番目のListとしてキーに"stair"、バリューに'1'と設定します。
+  | Please have a view of the first data in this table as an example. Because the "aspect" is in string format, it is stored in the first list of the TupleStringString class
+  | in which, the key is set as "aspect", value is set as "SW".
+  | Because other items are numerical, they are stored in the list of the TupleStringDouble class, in which
+  | the first list's key is set as "distance" and value is set as "10",
+  | the second list's key is set as "space" and value is set as "20.04",
+  | the third list's key is set as "age" and value is set as "15",
+  | the fourth list's key is set as "stair" and value is set as "1".
    
-  これらの5つのListを保持したDatumにラベルとして家賃である'5.0'を付け加え、家賃が'5.0'である賃貸の条件を保持したTupleFloatDatumクラスができます。
-  その家賃ごとのデータ（TupleFloatDatum）をListとしたものを学習用データとして使用します。
+  The Datum of these 5 Lists is appended with a label of "5.0", as its rent, and forms an instance of TupleFloatDatum class which retains the rent (of 5.0 * 10,000) and its corresponding housing condition info.
+  Thus, the housing rental data are generated in the format of (TupleFloatDatum) List, as the training data to be used.
+    
+  Here is the detailed process for making the training data in this sample.
   
-  
-  このサンプルでの学習用データ作成の手順は下記の流れで行います。
-  
-  まず、学習用データの変数としてTupleFloatDatumのListであるtrainDataを宣言します（58行目）。
-  次に、学習用データの元となるCSVファイルを読み込みます。
-  ここでは、FileReaderとBuffererdReaderを利用して1行ずつループで読み込んで処理します（71-100行目）。
-  CSVファイルなので、取得した1行を','で分割し要素ごとに分けます（77行目）。
-  定義したCSVファイルの項目リスト（CSV_COLUMN）とString項目リスト（STRING_COLUMN）、Double項目リスト（FLOAT_COLUMN）を用い、CSVのデータをString項目はstrList、Double項目はdoubleListというリストを作成します（85-91行目）。
-  作成した２つのリストを引数としてDatumを作成するprivateメソッド「makeDatum」を呼び出します（91行目）。
+  First, declare the variable of training data "trainDat", as a TupleFloatDatum List (Row 58).
+  Next, read the source file (CSV file) of the training data.
+  Here, FileReader() and BuffererdReader() is used to read the items in CVS file line by line (Row 71-100).
+  Split the data read from each line in CSV file, by the ',' mark (Row 77).
+  Using the defined CSV item list (CSV_COLUMN),String item list (STRING_COLUMN) and Double item list (Double_COLUMN) to transfer the CSV data into strList or doubleList, if the item is in String or Double type (Row 85-91).
+  Then, create the "Datum" by using the 2 lists, as the arguments in the private method of [makeDatum] (Row 93).
    
-  「makeDatum」では、引数のString項目のリストとDouble項目のリストから、String項目はTupleStringStringのListを、Double項目はTupleStringDoubleのListを作成します（156-184行目）。
-  まず、Datumクラスを生成してDatumの要素であるstring_valuesとnum_valuesのListをそれぞれ生成します（158-160行目）。
-  次に、定義しているString項目リスト（STRING_COLUMN）と引数のstrListの順番は対応しているので、ループでTupleStringStringを生成し、要素firstにキー（カラム名）をsecondにバリュー（値）を設定してstring_valuesのListに追加します（162-168行目）。
-  Double項目リストもString項目と同様にループでTupleStringDoubleを生成し、要素を設定してからnum_valuesに追加します。ここで注意する点は、引数はString型のListですがDatumのnum_valuesはDouble型の為、変換が必要になります（174行目）。
-  これで、Datumの作成が完了しました。
+  The string item list and double item list in the arguments of [makeDatum] method are used to generate the TupleStringString list and TupleStringDouble list, respecitively (Row 156-184).
+  At first, create the instance of Datum class component: "string_values" list and "num_values" list (Row 158-160).
+  Next, generate the TupleStringString by reading the items from strList. The first element is the column name (as the key), and the second element is the value. The data is added into the string_values list (Row 162-168).
+  The Double type items are processed in the similar way as String type items, to generate TupleStringDouble. Please note that the elements of num_values are added with type conversion, because the argument is of String type List while the num_values in Datum is of Double type (Row 174).
+  Now, the Datum is created.
   
-  先ほどの、「makeDatum」で作成したDatumにlabelとして家賃（rent）を付与したものを学習用データの1つ（変数train）として使用します（95,96行目）。
-  その作成した学習用データの1つを、CSVの読み込みループの中で学習用データの変数trainDataのListに追加する処理をCSVの行数分繰り返して、最終的にtrainDataをシャッフルすることで学習用データの作成が完了します（103行目）。
+  The Datum created in [makeDatum] above is appended with the rent label, so as to be used as one piece of training data (argument 'train' in Row 95-96).
+  By looping the above processes, source data in the CSV file will be transferred into the training data line by line and stored in the trainData List (Row 103).
 
- 3. データの学習（学習モデルの更新）
+ 3. Model Training (update learning model
 
-  2.の工程で作成した学習用データを、trainメソッドに渡すことで学習が行われます（106行目）。
-  trainメソッドの第1引数は、タスクを識別するZookeeperクラスタ内でユニークな名前を指定します。（スタンドアロン構成の場合、空文字（""）を指定）
-  第2引数として、先ほど2.で作成したtrainDataを指定します。
-  戻り値として、学習した件数を返却します。
-
- 4.推定用データの準備
-
-  推定も学習時と同様に、推定用のDatumを作成します。
-  ここでは、推定用のデータをYAMLファイルから読み込む方法で実装します。（別途ライブラリ `JYaml <http://jyaml.sourceforge.net/download.html>`_  が必要）
-  YAML（ヤムル）とは、構造化データやオブジェクトを文字列にシリアライズ（直列化）するためのデータ形式の一種です。
+  Input the training data generated in step.2 into the train() method (Row 106).
+  The first parameter in train() is the unique name for task identification in Zookeeper.
+  (use null charactor "" for the stand-alone mode)
+  The second parameter specifies the Datum generated in step.2.
+  The returned result is the number of training data have been processed.
   
-  あらかじめ作成したYAMLファイル（myhome.yml）を読み込むとHashMapとして取得できます（131行目）。
-  取得したHashMapを用い、2.でDatumを作成したのと同じ様にprivateメソッド「makeDatum」で作成します。
-  
-  ただし、ここで使用する「makeDatum」は引数がHashMapとなっているので、2.で使用したものと結果は同じですが処理が異なります（187-223行目）。
-  また、推定用のデータなので全項目分を作成する必要はありません。条件としたい項目のみ作成します。
-  
-  作成したDatumを推定用データのListに追加し、RegressionClientのestimateメソッドに与えることで、推定が行われます。
-  
- 5.学習モデルに基づく推定
+ 
+ 4. Prepare the prediction data 
 
-  4.で作成したDatumのListを、estimateメソッドに渡すことで、推定結果のListを得ることができます（137行目）。
+  Prepare the prediction data in the similar way of training Datum creation.
+  Here, we generate the data for prediction by using the YAML file (please download the library `JYaml <http://jyaml.sourceforge.net/download.html>`_ )
+  YAML is one kind of data format, in which objects and structure data are serialized.
+  
+  Read the YAML file (myhome.yml) as a HashMap (Row 131).
+  Generate the prediction Datum by using the [makeDatum] method, as simliar as Step 2, with the HashMap.
+  
+  However, since the argument used here is HashMap, although the output is the same, the generation process is different (Row 187-223).
+  In addition, there is no need to fill all the items in one Datum. The only required conditions are created in the Datum. 
+  
+  Add the Datum into the prediction data list, and send it into the estimate() method in "RegressionClient" for prediction.
+  
+ 5. Prediction by the regression model
 
- 6.結果の出力
+  The prediction results are returned as a list by the estimate() method (Row 137).
 
-  5.で取得した、推定結果のリストは推定用データの順番で返却されます。（サンプルでは推定用データは1データなので1つしか返却されません）
-  推定結果はFloat型なので、出力のために小数第二位で四捨五入しています。
+ 6. Output the result
+
+  The prediction results are returned in the same order of the prediction data. (In this sample, only one prediction data is used, thus only one result is returned.)
+  The result is rounded at 2nd decimal for output, because it is in Float type.
 
 -----------------------------------
-サンプルプログラムの実行
+Run the sample program
 -----------------------------------
 
-**［Jubatus Serverでの作業］**
-
- jubaregressionを起動します。
+**［At Jubatus Server］**
+ 
+ start "jubaregression" process.
 
  ::
 
   $ jubaregression --configpath rent.json
 
-**［Jubatus Clientでの作業］**
+**［At Jubatus Client］**
 
- | 必要なパッケージとJavaクライアントを用意し、引数を指定して実行します。（第2引数は任意）
- |  第1引数：YMLファイル名（必須）
- |  第2引数：CSVファイル名（学習データありの場合）
+ Get the required package and Java client ready.
+ | Specify the arguments and Run! (The 2nd arguments is optional.)
+ |  The first argument: YML file name (required)
+ |  The second argument: CSV file name (if there is training data)
+ 
 
-**［実行結果］**
+**［Result］**
+
 
  ::
 

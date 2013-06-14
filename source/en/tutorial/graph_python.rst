@@ -1,13 +1,14 @@
 Python
 =================
 
-ここではPython版のGraphサンプルプログラムの解説をします。
+Here we explain the sample program of Graph in Python.
 
 --------------------------------
-ソースコード
+Source_code
 --------------------------------
 
-このサンプルプログラムでは、学習アルゴリズム等の設定をするtrain_route.json、グラフ作成を行うcreate_graph.py、最短経路を計算するsearch_route.pyを利用します。以下にソースコードを記載します。
+In this sample program, we will explain 1) how to configure the learning-algorithms that used by Jubatus, with the example file 'train_route.json'; 2) how to create the graph with 'create_graph.py', and how to learn the training data and calculate the shortest path with the example file ‘search_route.py’. Here are the source codes.
+
 
 **train_route.json**
 
@@ -98,18 +99,18 @@ Python
  70 :         print "%s\t%s" % (stations[station], station)
  71 : 
  72 : if __name__ == '__main__':
- 73 :     # 1. Jubatus Server への接続設定
+ 73 :     # 1. Connect to Jubatus Server
  74 :     c = client.graph(host, port)
  75 : 
- 76 :     # 2. プリセットクエリーを登録
+ 76 :     # 2. Regist the preset query
  77 :     pq = types.preset_query([], [])
  78 :     c.add_shortest_path_query(instance_name, pq)
  79 : 
- 80 :     # 3. グラフの作成
+ 80 :     # 3. Generate the graph
  81 :     create_graph(c, get_station_join(11302)) # 山手線
  82 :     create_graph(c, get_station_join(11312)) # 中央線
  83 : 
- 84 :     # 4. 駅IDの表示
+ 84 :     # 4. Show the Station IDs
  85 :     print "=== Station IDs ==="
  86 :     print_stations()
 
@@ -131,17 +132,17 @@ Python
  09 : instance_name = ''
  10 : 
  11 : def search_route(from_id, to_id):
- 12 :     # 1. Jubatus Server への接続設定
+ 12 :     # 1. Connect to Jubatus Server
  13 :     c = client.graph(host, port)
  14 : 
- 15 :     # 2. クエリーの準備
+ 15 :     # 2. Prepare the query
  16 :     pq = types.preset_query([], [])
  17 :     spreq = types.shortest_path_query(from_id, to_id, 100, pq)
  18 :     
- 19 :     # 3. 最短経路を計算
+ 19 :     # 3. Calculate the shortest path
  20 :     stations = c.get_shortest_path(instance_name, spreq)
  21 : 
- 22 :     # 4. 結果の表示
+ 22 :     # 4. Return the results
  23 :     print "Pseudo-Shortest Path (hops) from %s to %s:" % (from_id, to_id)
  24 :     for station in stations:
  25 :         node = c.get_node(instance_name, station)
@@ -159,62 +160,59 @@ Python
 
 
 --------------------------------
-解説
+Explanation
 --------------------------------
 
 **train_route.json**
 
-設定は単体のJSONで与えられます。JSONの各フィールドは以下のとおりです。
+The configuration information is given by the JSON unit. Here is the meaning of each JSON filed.
 
  * method
  
-  グラフ解析に使用するアルゴリズムを指定します。
-  ここでは、インデックスのないグラフを利用するための "graph_wo_index" を指定します。
-  
+  Specify the algorithm used in graph mining. Currently, In this example, we use the graph without indexing, so we specify it "graph_wo_index".  
   
  * parameter
  
-  アルゴリズムに渡すパラメータを指定します。
-  ここでは2つのパラメータ、"damping_factor" と "landmark_num" を指定しています。
-  "damping_factor" は、PageRank の計算におけるdamping factorで、次数の異なるノードのスコアを調整します。大きくすると構造をよく反映したスコアを出す代わりに、スコアに極端な偏りが発生します。
-  "landmark_num" は最短パスにおいてランドマークの総数を指定します。大きくすると正確な最短パスに近づく代わりに、多くのメモリを消費します。
+  Specify the parameters to be passed to the algorithm.
+  We specify two parameter here, "damping_factor" and "landmark_num".
+  "damping_factor" is the damping factor used in PageRank calculation. It adjusts scores for nodes with differenct degrees.The bigger it is, the more sensitive to graph structure PageRank score is, but the larger biases it causes. In the original paper, 0.85 is good.
+  "landmark_num" is used for shortest path calculation. The bigger it is, more accurate value you can get, but the more memory is required. 
 
 
 **create_graph.py**
 
- create_graph.pyでは、山手線と中央線の接続を表すグラフを作成します。Graphのクライアントプログラムは、jubatus.graphクラス内で定義されているGraphClientクラスを利用して作成します。サンプルで使用するメソッドは、以下の5つです。
 
- 1. Jubatus Serverへの接続設定
+ create_graph.py generates a graph composed of Yamanote-line and Chuou-line. The client program in Graph will use the 'GraphClient' class defined in 'jubatus.graph'. Here are the 5 methods used in the sample.
 
-  Jubatus Serverへの接続を行います（74行目）。
-  Jubatus ServerのIPアドレス，Jubatus ServerのRPCポート番号を設定します。
-  
- 2. プリセットクエリーを登録
+ 1. Connect to Jubatus Server
 
-  最短経路を計算するために、クエリーをあらかじめadd_shortest_path_queryメソッドで登録しておく必要があります。
-  そのためのクエリーを作成します(77行目)。
-  add_shortest_path_queryメソッドで作成したクエリーを登録します(78行目)。
-  
- 3. グラフの作成
+  Connect to Jubatus Server (Row 74).
+  Setting the IP addr., RPC port of Jubatus Server.
 
-  山手線と中央線の接続を表すグラフを作成します。
-  ここでは、create_graphメソッドを呼び出します(81, 82行目)。
-  create_graphメソッドの第1引数は 1. で作成したクライアントです。
-  第2引数には get_station_joinメソッドの戻り値を指定します。
+ 2. Regist the preset query
   
-  get_station_joinメソッドでは接続する2駅を組み合わせたリストを作成します。
-  駅情報をWEB上にあるXMLファイルから取得します(29, 30行目)
-  取得したXMLファイルの構造は下記のようになっています。
-  今回のプログラムでは駅間の距離などは考慮せず、駅の接続情報のみ用いるため、下記XMLファイルの<station_name1>、<station_name2>の値しかプログラム中では扱いません。
-  
+  The 'add_shortest_path_query' method must be registered beforehand. Therefore, the 'PresetQuery' is made (Row 77) and registed by 'add_shortest_path_query' (Row 78).
+
+ 3. Generate the graph
+
+  Make the graph composed of Yamanote-line and Chuou-line.
+  Firstly, the method [create_graph] is called at (Row 81-82).
+  The first argument in [create_graph] is the GraphClient made in Step. 1. 
+  The second argument is the return value from method [get_station_join].
+
+  Method [get_station_join] makes the combination list of two neighbor stations.
+  The station XML file is downloaded from Web (Row 29-30).
+  Contents of the XML file likes below.
+  In this sample program, we ignore the factor of 'distance', and only consider the connections between stations. So, the values in <station_name1>, <station_name2> are not used in the program.  
+   
   ::
   
    <ekidata version="ekidata.jp station_join api 1.0">
    <station_join>
     <station_cd1>1131231</station_cd1>
     <station_cd2>1131232</station_cd2>
-    <station_name1>西八王子</station_name1>
-    <station_name2>高尾</station_name2>
+    <station_name1>Nichi-Hachioji</station_name1>
+    <station_name2>Takao</station_name2>
     <lat1>35.656621</lat1>
     <lon1>139.31264</lon1>
     <lat2>35.642026</lat2>
@@ -223,8 +221,8 @@ Python
    <station_join>
     <station_cd1>1131230</station_cd1>
     <station_cd2>1131231</station_cd2>
-    <station_name1>八王子</station_name1>
-    <station_name2>西八王子</station_name2>
+    <station_name1>Hachioji</station_name1>
+    <station_name2>Nichi-Hachioji</station_name2>
     <lat1>35.655555</lat1>
     <lon1>139.338998</lon1>
     <lat2>35.656621</lat2>
@@ -233,127 +231,127 @@ Python
    <station_join>
     <station_cd1>1131229</station_cd1>
     <station_cd2>1131230</station_cd2>
-    <station_name1>豊田</station_name1>
-    <station_name2>八王子</station_name2>
+    <station_name1>Toyota</station_name1>
+    <station_name2>Hachioji</station_name2>
     <lat1>35.659502</lat1>
     <lon1>139.381495</lon1>
     <lat2>35.655555</lat2>
     <lon2>139.338998</lon2>
    </station_join>
-   -以下略-
+   -Snip-
    
+  Now, we input the value of <station_cd1> in the XML file into the instance variable 'station1' in [StationJoin] class, and the value of <station_cd2> in to 'station2'.
+  The number of instance created in [StationJoin] is the same as the number of <station_join> tags, and they are sotred in the ArrayList that created at Row 28 （Row 31-41).
+  
+  Next, we make the graph by using the list created above (Row 44-57).
+  The method [create_graph] performs the following task.
 
-  次に取得した駅情報のXMLファイルの<station_cd1>の値をstation_joinクラスのインスタンス変数station1に、<station_cd2>の値をstation2に格納します。
-  タグ<station_join>の数だけstation_joinクラスのインスタンスを作成し、28行目で作成したリストに格納していきます（31-41行目）。
-  
-  上記で作成したリストを用いて、グラフを作成します(44-57行目)。
-  create_graphメソッドでは、以下の作業を行います。
-  
-   3-1. 駅情報の追加と駅IDの取得
-    グラフ内にノードを追加します。ここでのノードは駅に相当します。（例. 品川駅、御茶ノ水駅、東京駅など）
+   3-1. Add station information and ID.
+    Insert node into graph. Here, a node means a station. (eg. Shinagawa, Ochanomizu, Tokyo, etc.)
     
-   3-2. 追加した2駅の相互にエッジを張る
-    登録した駅から隣接する駅へエッジを張ります。ここでのエッジは線路に相当します。（例.原宿⇒渋谷など）
-    
-  3-1. 駅情報の追加と駅IDの取得
-   取得したリストの1要素から隣接する2駅station1とstation2をそれぞれノードとしてグラフ内に追加するため、add_stationメソッドを呼び出します（47, 48行目）。
-   add_stationメソッドではマップstationsに、引数に指定した駅が含まれているかを確認し、含まれている場合はその駅のID nodeIdを返却し、含まれない場合は新たにノードを登録して駅名とnodeIdをstationsに格納した後にnodeIdを返却します（59-66行目）。
-   ノードの登録はcreate_nodeメソッドとupdate_nodeメソッドで行います。
-   まず、create_nodeメソッドを、引数にタスクを識別するZooKeeperクラスタ内でユニークな名前nameを指定して呼び出し、その戻り値をnodeIdとします(63行目)。
-   そしてupdate_nodeメソッドで、63行目で作成したノードの属性を更新します(64行目)。
-   
-  3-2. 追加した2駅の相互にエッジを張る
-   add_stationメソッドで隣接する2駅station1とstation2を追加した後に、station1からstation2へ向けたエッジとstation2からstation1へ向けたエッジを張ります（51-54行目）。
-   エッジを張るためにはcreate_edgeメソッドを利用します。
-   第2引数に接続元のnodeIDを指定し、第3引数には接続元と接続先のnodeIDを格納したエッジを指定します。
-   
-  57行目のupdate_indexメソッドはmixをローカルで実行するものです。分散環境では利用しないでください。
+   3-2. Create links between the added two neighbor stations
+    Make the bi-link between the registed station to its neighbor stations. Here, a link means a route. (eg. Harajuku <-> Shibuya, etc.)
   
- 4. 駅IDの表示
+  3-1. Add station information and ID.
+   Method [add_station] is called (Row 47-48), to add every pair of neighboring nodes <station1, station2> in to the graph. 
+   Method [add_station] will check the map of 'stations'. If the map contains the specified station, the station_id will be returned; Otherwise, a new node is created, and its ID is returned after storing the nodeID and station name into the 'stations' map (Row 59-66).
+   Mehods [create_node] and [update_node] in GraphClient regist the new node.
+   At first, [create_node] method is called with its argument set by an unique task name in the ZooKeeper cluster, and the returned value is the nodeId.
+   After that, a node is added into the graph. Then, we regist the key-value <name, "station name"> into the 'property' (Row 63).
+   Finally, [update_node] method updates the 'property' with the node created at Row 63 (Row 64).
+   
+  3-2. Create links between the added two neighbor stations
+   After adding the two neighbor stations by method [addStation], we create the bi-links between station1 and station2 (Row 51-54).
+   Method [create_edge] is used to create the bi-links.
+   The second argument means the start node's ID. The third argument is an edge instance, which has the nodeID of both start and end nodes of the edge.
+   
+  The [update_index] method in Row 57 is used for locally Mix operation, do not use it in distributed environment.
 
-  3-1.で駅名と駅ID(nodeID)をstationsに格納しました。ここでは駅名を駅IDの昇順に並び替えて表示しています(68-70行目)。
+ 4. Show the stations
+
+  In step 3-1, station name and station ID(nodeID) are stored into the "stations". Here, we output the stations names by the ascending order of their IDs (Row 68-70).
   
  **search_route.py**
  
- search_route.pyでは、create_graph.pyで作成したグラフから2駅間の最短経路を計算します。
- 使用するメソッドは、最短経路を計算するためのget_shortest_pathメソッドです。
+ 'search_route.py' finds the shortest path between every 2 stations from the graph that made by create_graph.py.
+ The method it used is the "get_shortest_path".
   
-  1. Jubatus Serverへの接続設定
+  1. Connect to Jubatus Server
 
-   Jubatus Serverへの接続を行います（13行目）。
-   Jubatus ServerのIPアドレス，Jubatus ServerのRPCポート番号を設定します。
+   Connect to Jubatus Server (Row 13).
+   Setting the IP addr., RPC port of Jubatus Server.
+
    
-  2. クエリーの準備
+  2. Prepare the query
 
-   最短経路を計算するためのクエリーを準備します(16, 17行目)。
-   最短経路を計算するためのget_shortest_pathメソッドに必要なshortest_path_queryを作成します(17行目)。
-   types.shortest_path_queryの第1引数に接続元の駅ID、第2引数に接続先の駅IDを設定します。第3引数で指定したホップ以内に発見できなかった場合、結果は切り詰められます。
-   またクエリーはあらかじめadd_shortest_path_queryで登録しておく必要があります。
+   Prepare the query for the shortest path calculation (Row 16-17).
+   Create the shortest_path_query required by the [get_shortest_path] method (Row 17).
+   Store the start node's & end node's nodeIDs into the first & second arguments in the 'types.shortest_path_query'. The third argument is the number of 'maxhop', the search process will be truncated if it fails to find the route within the specified number of 'maxhop'.
+   Also note, the query should be registed by "add_shortest_path_query" beforehand.
    
-  3. 最短経路の計算
+  3. Calculate the shortes path
 
-   2.で作成したshortest_path_queryを指定して、get_shortest_pathを呼び出し、最短経路の計算をします(20行目)。
-   
-  4. 結果の表示
+   By specifying the "shortest_path_query" that created in Step.2, [get_shortest_path] method will find the shortest path (Row 20). 
 
-   3.で取得した最短経路で通過する駅を駅IDと関連付けて表示しています(23-29行目)。
+  4. Show the results
 
+   Show the ID of stations that on the shortes path calculated in Step 3 (Row 23-29).
 
 ------------------------------------
-サンプルプログラムの実行
+Run the sample program
 ------------------------------------
 
-［Jubatus Serverでの作業］
+［At Jubatus Server］
 
-**サーバの起動**
+**Start server**
 
-jubagraphを起動します。
+start "jubagraph" process.
 
 ::
 
  $ jubagraph --configpath train_route.json 
 
+［At Jubatus Client］
 
-［Jubatus Clientでの作業］
+Install the Jubatus 0.4.0 + Python client.
 
-Jubatus 0.4.0 + Pythonクライアントをインストールしてください。
 
-**グラフの作成**
+**Create graph**
 
-鉄道の接続を表すグラフを作成します。
+Make the railway route graph.
 
 ::
 
  $ ./create_graph.py
  === Station IDs ===
- 0       品川
- 1       大崎
- 4       田町
+ 0       Shinagawa
+ 1       Osaki
+ 4       Tamachi
  ...
- 139     中野
- 144     四ツ谷
- 147     御茶ノ水
+ 139     Nagano
+ 144     Yotsuya
+ 147     Ochanomizu
  ```
 
-駅名に対応する駅ID(グラフ上のnode ID) が出力されます。
-
-**経路の探索**
+Output of the station name, and their station ID (node ID on graph).
 
 
-2つの駅IDから最短経路を検索します。
+**Search the shortest path**
 
+
+Search the shortest path between 2 stations.
+ 
 ::
 
  $ ./search_route.py 0 144
  Pseudo-Shortest Path (hops) from 0 to 144:
-   0     品川
-   4     田町
-   7     浜松町
-   10    新橋
-   13    有楽町
-   16    東京
-   19    神田
-   147   御茶ノ水
-   144   四ツ谷
-
+ 0     Shinagawa
+ 4     Tamachi
+ 7     Hamamatsucho
+ 10    Shinbashi
+ 13    Yurakucho
+ 16    Tokyo
+ 19    Kanda
+ 147   Ochanomizu
+ 144   Yotsuya
 

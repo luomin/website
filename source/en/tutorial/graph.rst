@@ -1,66 +1,67 @@
 Graph
 ===================
 
-ここでは Jubatus のグラフマイニング機能(Graph)である、jubagraph を使用した、Jubatus Client の使い方を説明します。
+In this sample program, we will introduce how to do graph mining by using jubagraph function from Jubatus Client.
 
-グラフマイニング機能(Graph)とは、与えられたグラフ構造から中心点や最短距離を抽出する機能であり、ソーシャルコミュニティ分析やネットワーク構造分析に用いられます。
+By using graph mining function, we can find the center node or the shortest path in a graph structure. This is useful for the analysis of social community, network structure, and etc.
 
 ----------------------------------
-サンプルプログラムの概要
+Abstract of sample program
 ----------------------------------
 
-鉄道路線の最短経路 (ホップ数) を推定するプログラム「train_route」を用いて説明していきます。
+In this sample, we will describe the Jubagraph usage through a program of the shortest path detection for train routes. 
 
-最初に、鉄道の接続を表すグラフを作成します（CreateGraph）。今回は山手線と中央線の接続を表すグラフを作成します。
+At first, we will create the train_route graph by using the CreateGraph() function. And in this example, we build the graph with the train_route of Yamanote-line and Chuou-line, in Tokyo, Japan.
 
-グラフ作成後に駅名に対応する駅IDが出力されるので、その中から2つの駅IDを指定することで2駅間の最短経路を検索します（SearchRoute）。
+When the graph is built, we can find the shortest path between any 2 stations, when we input the station_id into the SearchRoute() function.
 
-例えば、山手線品川駅から中央線御茶ノ水駅までの経路は、新宿駅で中央線に乗り換えて御茶ノ水駅まで向かう（外回り）パターンと、東京駅で中央線に乗り換えて御茶ノ水駅に向かう（内回り）パターンの2パターンが考えられる。このプログラムでは、より通過する駅数が少ない経路、つまり東京駅で乗り換える経路を表示します。
+For example, to find the route between "Shinagawa-Station" on Yamanote-line and "Ochanomizu-Station" on Chuou-line, basically we can get 2 patterns. One is transfer at "Shinjuku-Station" for Chuou-line (clockwise), another one is transfer at "Tokyo-Station" for Chuou-line (counterclockwise). By using this program, the route of the least stations to pass is returned. In other words, only the route by "Tokyo-Station" will be returned.
 
 --------------------------------
-処理の流れ
+Processing flow 
 --------------------------------
 
-Jubatus Client の使ったコーディングは、主に以下の流れになります。
+Main flow of using Jubatus Client
 
 * CreateGraph
 
- 1. Jubatus Server への接続設定
+ 1. Connection settings to Jubatus Server
 
-  サーバ側で起動している Jubatus Server の HOST や PORT を指定し、接続設定をします。
+  Setting the HOST, RPC port of Jubatus Server
 
- 2. プリセットクエリーを登録
+ 2. Register the pre-set query
 
-  最短パスの算出に使用したいクエリーを新たに登録します。
+  Register the queries which to be used for the shortest path calculation.
 
- 3. グラフの作成
+ 3. Create graph
 
-  山手線、中央線の駅間接続情報を取得し、グラフを作成します。
+  Get the stations information in Yamanote-line and Chuou-line， and create the route-graph.
 
- 4. 駅IDの表示
+ 4. Set station ID
 
-  3.でグラフを作成時に登録した駅名に対応する駅IDを表示します。
+  Display the stations in route-graph by their station_id.
+
 
 * SearchRoute
 
- 1. Jubatus Server への接続設定
+ 1. Connection settings to Jubatus Server
 
-  サーバ側で起動している Jubatus Server の HOST や PORT を指定し、接続設定をします。
+  Setting the HOST, RPC port of Jubatus Server
 
- 2. クエリーの準備
+ 2. Prepare the query
 
-  最短経路を計算するためのクエリーを準備します。
+  Prepare the query for the shortest path calculation.
 
- 3. 最短経路を計算
+ 3. Get the shortest path
 
-  2.クエリーの準備で指定した2駅間の最短経路を計算します。
+  Calculate the shortest path between the two stations assigned in the query at step. 2.
 
- 4. 結果の表示
+ 4. Display the result
 
-  3.での計算結果を表示します。
+  Display the result in step. 3.
 
 --------------------------------
-サンプルプログラム
+Sample Program
 --------------------------------
 
 .. toctree::

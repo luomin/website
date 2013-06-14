@@ -157,12 +157,12 @@ First of all, to write the Client program for Classifier, we can use the Classif
 
  1. How to connect to Jubatus Server
 
-  Connect to Jubatus Server （Row 46）.
+  Connect to Jubatus Server (Row 46).
   Setting the IP addr., RPC port of Jubatus Server, and the connection waiting time.
 
  2. Prepare the learning data
 
-  Make a dataset for the data to be learnt <TupleStringDatum>（Row 47）.
+  Make a dataset for the data to be learnt <TupleStringDatum>(Row 47).
   
   The dataset is input into the train() method in ClassifierClient, for the learning process. The figure below shows the structure of the data being leant.
 

@@ -1,57 +1,54 @@
-Regression
+﻿Regression
 ==================
 
-ここではJubatusの線形回帰機能（Regression）である、jubaregressionを使用した、Jubatus Clientの使い方を説明します。
+In this sample program, we will introduce how to use the linear regression function 'jubaregression' through the Jubatus Client.
 
-線形回帰機能（Regression）とは、入力データから、出力データを推定する機能であり、株価予測や消費電力予測などに利用することができます。
-
+By using linear regression, we can estimate the output from the input data. This is useful for the power consumption forecast, stock price prediction, and etc.
 
 -----------------------------------
-サンプルプログラムの概要
+Abstract of sample program
 -----------------------------------
 
+In this sample, we will use a [rent] program to estimate the rent of a house, from the condition of the distance from the station, space; age, etc. 
 
-サンプルとして、駅からの距離、専有面積、築年数等の条件から家賃を推測するプログラム「rent」を用いて説明していきます。
+At first, please download the rent-data, from (`rent-data.csv <https://raw.github.com/jubatus/jubatus-example/master/rent/dat/rent-data.csv>`_). It is used to training the regression model at the server site. 
 
-最初に、賃貸情報サイトから取得した「S町の1Rマンション」の賃貸情報 (`rent-data.csv <https://raw.github.com/jubatus/jubatus-example/master/rent/dat/rent-data.csv>`_) をクライアント側で用意し、推定するためのモデルをサーバ側に学習させます。
+Next, housing data for the estimation are read from an external file (of YAML format). The Jubatus server will predict the rent for each house by using the model train, and return the predicted value the the client site.
 
-次に、推定用の入力データとして外部ファイル（今回はYAML形式を使用する）に物件の条件を入力し、サーバ側では先ほど学習したモデルを用い、条件にふさわしい家賃を推定して返却し、クライアント側で受け取った結果を出力するプログラムとなっています。
-
-例えば、推定用の入力データとして「駅からの距離（distance）は5分、占有面積（space）は32.0㎡、築年数（age）は15年」と入力すると、8.0万円と推定家賃が返却されます。
-
+For example, once client input a housing data of [(distance from station: 15min); (space: 32 m^2); (age: 15 years)], the estimated rent 80,000 JPY will be returned.
 
 --------------------------------
-処理の流れ
+Processing flow 
 --------------------------------
 
-Jubatus Clientを使ったコーディングは、主に以下の流れになります。
+Main flow of using Jubatus Client
 
- 1. Jubatus Serverへの接続設定
+ 1. Connection settings to Jubatus Server
 
-  サーバ側で起動しているJubatus ServerのHOSTやPORTを指定し、接続設定をします。
+  Setting the HOST, RPC port of Jubatus Server
 
- 2. 学習用データの準備
+ 2. Prepare the training data
 
-  賃貸情報CSVから家賃（rent）ごとに学習用データを作成します。
+  Get the rent-data from the downloaded .CSV file.
 
- 3. データの学習（学習モデルの更新）
+ 3. Data training (update the model)
 
-  2.で作成した学習用データをtrainメソッドでサーバ側に与え、学習を行います。
+  Use the train() method to send the rent-data to the server site and training the model there.
 
- 4. 推定用データの準備
+ 4. Prepare the data for estimation
 
-  推定用にサーバ側に投げる、物件情報のデータを作成します。
+  Pre-process and send the estimation data to the server site.
 
- 5. 学習モデルに基づく推定
+ 5. Predict the data 
 
-  4.で作成した推定用データを入力値とし、estimateメソッドで③の学習に基づいた推定をします。
+  Use the estimate() method to predict the input data (step 4) by using the model trained at step.3.
 
- 6. 結果の出力
+ 6. Return the result
 
-  estimateメソッドの戻り値である推定結果を出力します。
+  Output the return value of estimate() as the results.
 
 --------------------------------
-サンプルプログラム
+Sample Program
 --------------------------------
 
 .. toctree::

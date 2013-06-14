@@ -1,13 +1,13 @@
-Java
+﻿Java
 ==================
 
-ここではJava版のStatサンプルプログラムの解説をします。
+Here we explain the sample program of Stat in Java. 
 
 --------------------------------
-ソースコード
+Source_code
 --------------------------------
 
-このサンプルプログラムでは、学習の設定をするstat.jsonと統計分析を行うStat.javaを利用します。以下にソースコードを記載します。
+In this sample program, we will explain 1) how to configure the learning-algorithms that used by Jubatus, with the example file 'stat.json'; 2) how to train the model by 'stat.java'. Here are the source codes.
 
 **stat.json**
 
@@ -41,32 +41,32 @@ Java
  17 : 	public static final String FILE_PATH = "./src/main/resources/";
  18 : 	public static final String CSV_NAME = "fruit.csv";
  19 : 
- 20 : 	// CSVのカラム名定義
+ 20 : 	// Definie the column name in CSV file
  21 : 	public static String[] CSV_COLUMN = { "fruit", "diameter", "weight", "price" };
  22 : 
  23 : 	@SuppressWarnings("serial")
  24 : 	public void execute() throws Exception {
- 25 : 		// 1. Jubatus Serverへの接続設定
+ 25 : 		// 1. Connect to Jubatus Server
  26 : 		StatClient stat = new StatClient(HOST, PORT, 5);
  27 : 
  28 : 		HashMap<String, String> fruit = new HashMap<String, String>();
  29 : 
- 30 : 		// 2. 学習用データの準備
+ 30 : 		// 2. Prepare the training data
  31 : 		try {
  32 : 			File csv = new File(FILE_PATH + CSV_NAME ); // CSVデータファイル
  33 : 
  34 : 			BufferedReader br = new BufferedReader(new FileReader(csv));
  35 : 			String line = "";
  36 : 
- 37 : 			// 最終行まで、1行ずつループでまわして読み込む
+ 37 : 			// read data line by line, until the last one.
  38 : 			while ((line = br.readLine()) != null) {
- 39 : 				// 1行をデータの要素ごとに分割
+ 39 : 				// split the data in one line into items
  40 : 				String[] strAry = line.split(",");
  41 : 
  42 : 				for (int i=0; i<strAry.length; i++) {
  43 : 					fruit.put(CSV_COLUMN[i], strAry[i]);
  44 : 				}
- 45 : 				// 3. データの学習（学習モデルの更新）
+ 45 : 				// 3. Data training (update model)
  46 : 				stat.push(NAME, fruit.get("fruit") + "dia" , Float.valueOf(fruit.get("diameter")));
  47 : 				stat.push(NAME, fruit.get("fruit") + "wei" , Float.valueOf(fruit.get("weight")));
  48 : 				stat.push(NAME, fruit.get("fruit") + "pri" , Float.valueOf(fruit.get("price")));
@@ -76,7 +76,7 @@ Java
  52 : 			stat.save(NAME, "stat.dat");
  53 : 			stat.load(NAME, "stat.dat");
  54 : 
- 55 : 			// 4. 結果の出力
+ 55 : 			// 4. Output result
  56 : 			for (String fr : new ArrayList<String>(3) {{add("orange");add("apple");add("melon");}}) {
  57 : 				for ( String par : new ArrayList<String>(3) {{add("dia");add("wei");add("pri");}}) {
  58 : 					System.out.print("sum : " + fr +  par + " " + stat.sum(NAME, fr + par) + "\n");
@@ -88,17 +88,17 @@ Java
  64 : 				}
  65 : 			}
  66 : 		} catch (FileNotFoundException e) {
- 67 : 			 // Fileオブジェクト生成時の例外捕捉
+ 67 : 			 // capture the exception in File object creation.
  68 : 			 e.printStackTrace();
  69 : 		} catch (IOException e) {
- 70 : 			 // BufferedReaderオブジェクトのクローズ時の例外捕捉
+ 70 : 			 // capture the exception when close BufferedReader object.
  71 : 			 e.printStackTrace();
  72 : 		}
  73 : 
  74 : 		return;
  75 : 	}
  76 : 
- 77 : 	// メインメソッド
+ 77 : 	// Main method
  78 : 	public static void main(String[] args) throws Exception {
  79 : 
  80 : 		new Stat().execute();
@@ -108,33 +108,35 @@ Java
 
 
 --------------------------------
-解説
+Explanation
 --------------------------------
 
 **stat.json**
 
-設定は単体のJSONで与えられます。JSONの各フィールドは以下のとおりです。
+The configuration information is given by the JSON unit. Here is the meaning of each JSON filed.
 
  * window_size
  
-  保持する値の数を指定する。 (Integer)
+  Specify the value to retain. (Integer)
   
 
 **Stat.java**
 
- Stat.javaでは、csvから読み込んだフルーツの直径・重さ・値段の情報をJubatusサーバ与え、それぞれのフルーツごとに統計結果を出力します。使用するメソッドは以下になります。
+ the 'price', 'weight', 'diameter' of orange, apples and melon. Program [trivial_stat] is used for the statistical analysis, such as standard deviation and summary value of the parameter, in each fruit.
+
+ Stat.java reads the 'price', 'weight', 'diameter' of fruits from the .csv file, and send the info. to Jubatus server. The methods used are listed below.
  
  * bool push(0: string name, 1: string key, 2: double val)
 
-  属性情報 key の値 val を与える。
+  Set the attribute info. "key"'s value with "val".
 
  * double sum(0: string name, 1: string key)
 
-  属性情報 key を持つ値の合計値を返す。
+  Return the summary value of attribute "key". 
 
  * double stddev(0: string name, 1: string key)
 
-  属性情報 key を持つ値の標準偏差を返す。
+  Return the standard deviation of attribute "key".
 
  * double max(0: string name, 1: string key)
 
