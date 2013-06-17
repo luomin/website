@@ -1,4 +1,4 @@
-﻿Java
+Java
 ==================
 
 Here we explain the sample program of Graph in Java. 

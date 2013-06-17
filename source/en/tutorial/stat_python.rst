@@ -1,13 +1,13 @@
 Python
 ==================
 
-ここではPython版のStatサンプルプログラムの解説をします。
+Here we explain the sample program of Stat in Python.
 
 --------------------------------
-ソースコード
+Source_code
 --------------------------------
 
-このサンプルプログラムでは、学習の設定をするstat.jsonと統計分析を行うstat.pyを利用します。以下にソースコードを記載します。
+In this sample program, we will explain 1) how to configure the learning-algorithms that used by Jubatus, with the example file 'stat.json'; 2) how to train the model by 'stat.py'. Here are the source codes.
 
 **stat.json**
 
@@ -33,14 +33,14 @@ Python
  09 : 
  10 : if __name__ == '__main__':
  11 : 
- 12 :   # 1. Jubatus Serverへの接続設定
+ 12 :   # 1. Connect to Jubatus Server
  13 :   stat = client.stat("127.0.0.1",9199)
  14 : 
- 15 :   # 2. 学習用データの準備
+ 15 :   # 2. Prepare the training data
  16 :   for line in open('./fruit.csv'):
  17 :     fruit, diameter, weight , price = line[:-1].split(',')
  18 :     
- 19 :     # 3. データの学習（学習モデルの更新）
+ 19 :     # 3. Data training (update model)
  20 :     stat.push(NAME, fruit+"dia", float(diameter))
  21 :     stat.push(NAME, fruit+"wei", float(weight))
  22 :     stat.push(NAME, fruit+"pri", float(price))
@@ -48,7 +48,7 @@ Python
  24 :   stat.save(NAME, "stat.dat")
  25 :   stat.load(NAME, "stat.dat")
  26 : 
- 27 :   # 4. 結果の出力
+ 27 :   # 4. Output result
  28 :   for fr in ["orange", "apple","melon"]:
  29 :     for par in ["dia","wei", "pri"]:
  30 :       print "sum :",fr+par,stat.sum(NAME, fr+par)
@@ -61,94 +61,93 @@ Python
 
 
 --------------------------------
-解説
+Explanation
 --------------------------------
 
 **stat.json**
 
-設定は単体のJSONで与えられます。JSONの各フィールドは以下のとおりです。
+The configuration information is given by the JSON unit. Here is the meaning of each JSON filed.
 
  * window_size
  
-  保持する値の数を指定する。 (Integer)
+  Specify the amount of value to be retained. (Integer)
   
 
 **stat.py**
 
- stat.pyでは、csvから読み込んだフルーツの直径・重さ・値段の情報をJubatusサーバ与え、それぞれのフルーツごとに統計結果を出力します。使用するメソッドは以下になります。
+  Stat.py reads the 'price', 'weight', 'diameter' of fruits from the .csv file, and send the info. to Jubatus server. The methods used are listed below.
  
  * bool push(0: string name, 1: string key, 2: double val)
 
-  属性情報 key の値 val を与える。
+  Set the attribute info. "key"'s value with "val".
 
  * double sum(0: string name, 1: string key)
 
-  属性情報 key を持つ値の合計値を返す。
+  Return the summary value in the attribute "key". 
 
  * double stddev(0: string name, 1: string key)
 
-  属性情報 key を持つ値の標準偏差を返す。
+  Return the standard deviation of values in the attribute "key".
 
  * double max(0: string name, 1: string key)
 
-  属性情報 key を持つ値の最大値を返す。
+  Return the maximum value of values in the attribute "key".
 
  * double min(0: string name, 1: string key)
 
-  属性情報 key を持つ値の最小値を返す。
+  Return the minimum value of values in the attribute "key".
 
  * double entropy(0: string name, 1: string key)
 
-  属性情報 key を持つ値のエントロピーを返す。
+  Return the entropy of values in the attribute "key".
 
  * double moment(0: string name, 1: string key, 2: int degree, 3: double center)
 
-  属性情報 key を持つ値の center を中心とした degree 次のモーメントを返す。
+  Return the degree-th moment about 'center' of values in the attribute "key".
 
 
+ For all methods, the first parameter of each method (name) is a string value to uniquely identify a task in the ZooKeeper cluster. When using standalone mode, this must be left blank ("").
 
- 各メソッドの最初のパラメタnameは、タスクを識別するZooKeeperクラスタ内でユニークな名前である。 スタンドアロン構成では、空文字列 ("") を指定する。
+ 1. Connect to Jubatus Server.
 
- 1. Jubatus Serverへの接続設定
+  Connect to Jubatus Server (Row 13).
+  Setting the IP addr., RPC port of Jubatus Server.
 
-  Jubatus Serverへの接続を行います（13行目）。
-  Jubatus ServerのIPアドレス、Jubatus ServerのRPCポート番号を設定します。
-  
- 2. 学習用データの準備
+ 2. Prepare the learning data
 
-  StatClientでは、項目名と値をpushメソッドに与えることで、学習が行われます。
-  今回はサンプル用に作成した"フルーツの種類"・"直径"・"重さ"・"価格"の情報を持つCSVファイルを元に学習用データを作成していきます。
-  まず、学習用データの元となるCSVファイルを読み込みます。 ここでは、CSVファイルを1行ずつループで読み込んで処理します（15-22行目）。 
-  
- 3. データの学習（学習モデルの更新）
+  StatClient send the <item_name, value> to the server side as training data, by using the push() method.
+  In this sample program, the training data are generated from a .CSV file which contains the info. of 'fruit type', 'price', 'weight', 'diameter'.
+  The source data is read line by line from the .CSV file (Row 15-22). 
 
-  StatClientのpushメソッドに2. で作成したデータに項目名を付けて渡します（20-22行目）。ここでの項目名は"直径"の場合、フルーツの種類＋"dia"という形にして、"重さ"・"価格"についても同じようにpushメソッドを呼び出します。
-  
- 4. 結果の出力
+ 3. Data training (update the model)
 
-  StatClientの各統計分析メソッドを使用し、結果を出力します。
-  まず、フルーツの種類ごとにループをまわして（28行目）、さらに残りの項目ごとにループでまわして出力していきます（29行目）。
-  そのループ処理の中で、各統計分析メソッドを呼び出します（36-41行目）。各メソッドの内容は上記のメソッド一覧を参照してください。
-  
+  The training data generated in Step 2 is send to the server site by using the push() method (Row 20-22) for training model there. Items of fruit are renamed as the fruit's name extended with the item's prefix, eg. item for a fruit's diameter is: fruit's name + "dia". 
+ 
+ 4. Output the result
+
+  StatClient gets the different statistic results by using its methods.
+  For each type of fruits(Row 28), the program outputs its statistic results of all the items (Row 29).
+  Different methods are called (Row 30-35) in the loop above. Their contents are listed in the methods list above.
+      
 
 -------------------------------------
-サンプルプログラムの実行
+Run the sample program
 -------------------------------------
 
-**［Jubatus Serverでの作業］**
+**[At Jubatus Server]**
 
- jubastatを起動します。
+ start "jubagraph" process.
  
  ::
  
   $ jubastat --configpath stat.json
  
 
-**［Jubatus Clientでの作業］**
+**[At Jubatus Client]**
 
- 必要なパッケージとPythonクライアントを用意し、実行します。
+ Get the required package and Java client ready.
  
-**［実行結果］**
+**[Output]**
 
 ::
 
@@ -173,4 +172,4 @@ Python
  sum : appledia 2902.0000019073486
  sdv : appledia 15.412238321876663
  …
- …（以下略）
+ …(omitted)

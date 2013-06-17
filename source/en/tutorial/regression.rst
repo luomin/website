@@ -1,4 +1,4 @@
-﻿Regression
+Regression
 ==================
 
 In this sample program, we will introduce how to use the linear regression function 'jubaregression' through the Jubatus Client.

@@ -184,3 +184,19 @@ You can also stop instance of Jubatus server from ``jubactl``.
 ::
 
     [192.168.0.1]$ jubactl -c stop --server=jubaclassifier --type=classifier --name=tutorial --zookeeper=192.168.0.211:2181,192.168.0.212:2181,192.168.0.213:2181
+
+
+Other tutorials
+-------------------------
+
+We provide tutorial for using different functions through Jubatus Client here.
+
+.. toctree::
+   :maxdepth: 1
+
+   tutorial/classifier
+   tutorial/regression
+   tutorial/recommender
+   tutorial/graph
+   tutorial/stat
+   tutorial/anomaly

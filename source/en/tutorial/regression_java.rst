@@ -1,4 +1,4 @@
-﻿Java
+Java
 ================================
 
 Here we explain the sample program of Regression in Java. 
@@ -144,7 +144,7 @@ In this sample program, we will explain 1) how to configure the learning-algorit
  102 : 			// shuffle the training data
  103 : 			Collections.shuffle(trainData);
  104 : 
- 105 : 			// 3.Data training (update model)
+ 105 : 			// 3. Data training (update model)
  106 : 			int trainCount = client.train( NAME, trainData);
  107 : 
  108 : 			System.out.print("train ... " + trainCount + "\n");
@@ -163,7 +163,7 @@ In this sample program, we will explain 1) how to configure the learning-algorit
  121 : 	public void analyze(String yamlName) throws Exception {
  122 : 		RegressionClient client = new RegressionClient(HOST, PORT, 5);
  123 : 
- 124 : 		// 4.Prepare the estimation data
+ 124 : 		// 4. Prepare the estimation data
  125 : 		List<Datum> datumList = new ArrayList<Datum> ();
  126 : 		// result list
  127 : 		List<Float> result = new ArrayList<Float> ();
@@ -175,7 +175,7 @@ In this sample program, we will explain 1) how to configure the learning-algorit
  133 : 			// make the estimation data
  134 : 			datumList.add(makeDatum(hash));
  135 : 
- 136 : 			// 5.Predict by the model learned
+ 136 : 			// 5. Predict by the model learned
  137 : 			result.addAll(client.estimate( NAME, datumList));
  138 : 
  139 : 			// change the result into BigDecimal type
@@ -183,7 +183,7 @@ In this sample program, we will explain 1) how to configure the learning-algorit
  141 : 			// rounding at the 2nd decimal
  142 : 			BigDecimal bd2 = bd.setScale(1, BigDecimal.ROUND_HALF_UP);
  143 : 
- 144 : 			// 6.Output result
+ 144 : 			// 6. Output result
  145 : 			System.out.print("rent .... " + bd2 );
  146 : 
  147 : 		} catch (FileNotFoundException e) {
@@ -315,8 +315,8 @@ The configuration information is given by the JSON unit. Here is the meaning of 
 
 * method
 
-  Specify the algorithm used in regression. 
-  Currently, we have "PA" (Passive Agressive) only, so we specify it with "PA".
+ Specify the algorithm used in regression. 
+ Currently, we have "PA" (Passive Agressive) only, so we specify it with "PA".
 
 * converter
 
@@ -344,7 +344,7 @@ The configuration information is given by the JSON unit. Here is the meaning of 
 
 **rent.java**
 
-We explain the learning and prediction processes in this example codes.
+We explain the learning and prediction processes in this example.
 
  To write the Client program for Regression, we can use the RegressionClient class defined in 'us.jubat.regression'. There are two methods used in this program. The 'train' method for learning process, and the 'estimate' method for prediction with the data learnt.
  
@@ -355,7 +355,7 @@ We explain the learning and prediction processes in this example codes.
 
  2. Prepare the training data
 
-  RegressionClient puts the training data into TupleFloatDatum List, and sends the data to train() methods for the model training.
+  RegressionClient puts the training data into a TupleFloatDatum List, and sends the data to train() methods for the model training.
   In this example, the training data is generated from the CSV file that privided by a housing rental website. 
   Factors in the rental information includes rent, aspect, distance, space, age and stairs.
   Figure below shows the training data. (The following are four examples from over one hundred housing info. listed in the rent-data.csv)
@@ -395,7 +395,7 @@ We explain the learning and prediction processes in this example codes.
   In the first type, both the "key" and "value" are in string format (string_values); in the second one, the "key" is in string format, but the "value" is in numerical format (num_values).
   These two types are represented in TupleStringString class and TupleStringDouble class, respectively.
   
-  | Please have a view of the first data in this table as an example. Because the "aspect" is in string format, it is stored in the first list of the TupleStringString class
+  | Please have a view of the first example data in this table. Because the "aspect" is in string format, it is stored in the first list of the TupleStringString class
   | in which, the key is set as "aspect", value is set as "SW".
   | Because other items are numerical, they are stored in the list of the TupleStringDouble class, in which
   | the first list's key is set as "distance" and value is set as "10",
@@ -460,7 +460,7 @@ We explain the learning and prediction processes in this example codes.
 Run the sample program
 -----------------------------------
 
-**［At Jubatus Server］**
+**[At Jubatus Server]**
  
  start "jubaregression" process.
 
@@ -468,7 +468,7 @@ Run the sample program
 
   $ jubaregression --configpath rent.json
 
-**［At Jubatus Client］**
+**[At Jubatus Client]**
 
  Get the required package and Java client ready.
  | Specify the arguments and Run! (The 2nd arguments is optional.)
@@ -476,7 +476,7 @@ Run the sample program
  |  The second argument: CSV file name (if there is training data)
  
 
-**［Result］**
+**[Result]**
 
 
  ::

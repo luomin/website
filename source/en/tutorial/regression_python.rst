@@ -1,4 +1,4 @@
-﻿Python
+Python
 ================================
 
 Here we explain the sample program of Regression in Python.

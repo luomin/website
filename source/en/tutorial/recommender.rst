@@ -1,66 +1,62 @@
 Recommender
 ===================
 
-ここではJubatusの推薦（Recommender）である、jubarecommenderを使用した、Jubatus Clientの使い方を説明します。
+In this sample program, we will introduce how to use the Recommender function 'jubarecommender' through the Jubatus Client.
 
-推薦（Recommender）とは、類似するデータの推薦やデータ中の同属性の推薦を行う機能であり、検索サイト連動広告やECサイト商品お勧めなどに利用することができます。
-
+By using Recommender, we can recommend the similar data or data with the similar attribute. This function is useful for the EC site products recommendation or the linked ads recommendation in search site.
 
 -----------------------------------
-サンプルプログラムの概要
+Abstract of sample program
 -----------------------------------
 
+In this sample, we will use a [npb_similar_player] program to study the performance records of 2012 japanese baseball league players, and recommend the players with similar performance.
 
-サンプルとして、2012年日本プロ野球の野手成績を学習し、似たタイプ（成績）の野手を推薦するプログラム「npb_similar_player」を用いて説明していきます。
+At first, please download the `Baseball league player data <http://baseball-data.com/>`_, from (`baseball.csv <https://raw.github.com/jubatus/jubatus-example/master/npb_similar_player/dat/baseball.csv>`_). It is used to training the recommend model at the server site. 
 
-最初に、 `プロ野球データfreak <http://baseball-data.com/>`_ から取得した「規定打席の1/3以上の全野手のデータ」を打席数順にソートした CSV データ (`baseball.csv <https://raw.github.com/jubatus/jubatus-example/master/npb_similar_player/dat/baseball.csv>`_) をクライアント側で用意し、推薦するためのモデルをサーバ側に学習させます。
+Next, input other players' data to the Jubatus server for their similar players data as the recommendation results. The input data are read from an external file and processed in the same way as the .csv file above. 
 
-次に、推薦用の入力データとして学習時と同様にCSVファイルから名前だけを抽出しサーバ側に与え、サーバ側では先ほど学習したモデルを用い、タイプ（成績）が似ている野手を推薦し返却します。
-そして、クライアント側で受け取った結果を出力するプログラムとなっています。
-
-例えば、推薦用の入力データとして「中田翔」を渡すと、「player 中田翔 is similar to : 井口資仁 新井貴浩 中村紀洋」と似たタイプ（成績）の野手トップ3が返却されます。
-
+For example, if the player [Sho Nakata]'s data is input for its recommendation, the result is returned as: [player Sho Nakata is similar to : Tadahito Iguchi; Takahiro Arai; Norihiro Nakamura], the three infielders who have the most similar performance as Sho Nakata. 
 
 --------------------------------
-処理の流れ
+Processing flow 
 --------------------------------
 
-Jubatus Clientを使ったコーディングは、主に以下の流れになります。
+Main flow of using Jubatus Client
 
 * Upadate
 
- 1. Jubatus Serverへの接続設定
+ 1. Connection settings to Jubatus Server
 
-  サーバ側で起動している Jubatus ServerのHOSTやPORTを指定し、接続設定をします。
+  Setting the HOST, RPC port of Jubatus Server
 
- 2. 学習用データの準備
+ 2. Prepare the training data
 
-  baseball.csvの全野手の成績から学習用データを作成します。
+  Get all the filed players' data from the baseball.csv file.
 
- 3. データの学習（学習モデルの更新）
+ 3. Data training (update the model)
 
-  作成した学習用データ1行ずつをupdate_rowメソッドでサーバ側に与え、学習を行います。
+  Use the update_row() method to read the players' data line by line, and send to the server site to train the model there.
 
 * Analyze
 
- 1. Jubatus Serverへの接続設定
+ 1. Connection settings to Jubatus Server
 
-  サーバ側で起動しているJubatus ServerのHOSTやPORTを指定し、接続設定をします。
+  Setting the HOST, RPC port of Jubatus Server
 
- 2. 推薦用データの準備
+ 2. Prepare the data for recommendation
 
-  推薦用にサーバ側に投げる、野手情報のデータを作成します。
+  Generate the players' data to be analyzed.
 
- 3. 学習モデルに基づく推薦
+ 3. Recommendation based on the model at Jubatus server 
 
-  作成した推薦用データを入力値とし、similar_row_from_idメソッドで学習モデルに基づいた推薦をします。
+  Get the recommendation results of the players in Step 2, by using similar_row_from_id().
 
- 4. 結果の出力
+ 4. Output the result
 
-  similar_row_from_idメソッドの戻り値である推薦結果を出力します。
+  Output the results returned from similar_row_from_id().
 
 --------------------------------
-サンプルプログラム
+Sample program
 --------------------------------
 
 .. toctree::

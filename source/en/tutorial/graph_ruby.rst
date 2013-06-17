@@ -1,4 +1,4 @@
-﻿Ruby
+Ruby
 =================
 
 Here we explain the sample program of Graph in Ruby.

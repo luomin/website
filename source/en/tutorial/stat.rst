@@ -1,4 +1,4 @@
-﻿Stat
+Stat
 =================
 
 In this sample program, we will introduce how to use the statistical analysis function 'stat' through the Jubatus Client.

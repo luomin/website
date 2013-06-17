@@ -97,7 +97,7 @@ The configuration information is given by the JSON unit. Here is the meaning of 
 
  * converter
  
-  Specify the configurations in feature converter. In this sample, we will classify a person into male female through the features of 'length of hair', 'top clothes', 'bottom clothese' and 'height'. The "string_values" and "num_values" are stored in key-value pairs without using "*_filter_types" configuration.
+  Specify the configurations in feature converter. In this sample, we will classify a person into male or female through the features of 'length of hair', 'top clothes', 'bottom clothese' and 'height'. The "string_values" and "num_values" are stored in key-value pairs without using "*_filter_types" configuration.
    
  * parameter
 

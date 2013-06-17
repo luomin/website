@@ -1,4 +1,4 @@
-﻿Java
+Java
 ==================
 
 Here we explain the sample program of Stat in Java. 
@@ -53,7 +53,7 @@ In this sample program, we will explain 1) how to configure the learning-algorit
  29 : 
  30 : 		// 2. Prepare the training data
  31 : 		try {
- 32 : 			File csv = new File(FILE_PATH + CSV_NAME ); // CSVデータファイル
+ 32 : 			File csv = new File(FILE_PATH + CSV_NAME ); // CSV Data file
  33 : 
  34 : 			BufferedReader br = new BufferedReader(new FileReader(csv));
  35 : 			String line = "";
@@ -117,12 +117,12 @@ The configuration information is given by the JSON unit. Here is the meaning of 
 
  * window_size
  
-  Specify the value to retain. (Integer)
+  Specify the amount of value to be retained. (Integer)
   
 
 **Stat.java**
 
- the 'price', 'weight', 'diameter' of orange, apples and melon. Program [trivial_stat] is used for the statistical analysis, such as standard deviation and summary value of the parameter, in each fruit.
+ Program [trivial_stat] performs the statistical analysis, such as standard deviation and summary value of the parameter, in each fruit.
 
  Stat.java reads the 'price', 'weight', 'diameter' of fruits from the .csv file, and send the info. to Jubatus server. The methods used are listed below.
  
@@ -132,72 +132,69 @@ The configuration information is given by the JSON unit. Here is the meaning of 
 
  * double sum(0: string name, 1: string key)
 
-  Return the summary value of attribute "key". 
+  Return the summary value in the attribute "key". 
 
  * double stddev(0: string name, 1: string key)
 
-  Return the standard deviation of attribute "key".
+  Return the standard deviation of values in the attribute "key".
 
  * double max(0: string name, 1: string key)
 
-  属性情報 key を持つ値の最大値を返す。
+  Return the maximum value of values in the attribute "key".
 
  * double min(0: string name, 1: string key)
 
-  属性情報 key を持つ値の最小値を返す。
+  Return the minimum value of values in the attribute "key".
 
  * double entropy(0: string name, 1: string key)
 
-  属性情報 key を持つ値のエントロピーを返す。
+  Return the entropy of values in the attribute "key".
 
  * double moment(0: string name, 1: string key, 2: int degree, 3: double center)
 
-  属性情報 key を持つ値の center を中心とした degree 次のモーメントを返す。
+  Return the degree-th moment about 'center' of values in the attribute "key".
 
+ For all methods, the first parameter of each method (name) is a string value to uniquely identify a task in the ZooKeeper cluster. When using standalone mode, this must be left blank ("").
+ 
+ 1. Connect to Jubatus Server.
 
+  Connect to Jubatus Server (Row 26).
+  Setting the IP addr., RPC port of Jubatus Server, and the connection waiting time.
 
- 各メソッドの最初のパラメタnameは、タスクを識別するZooKeeperクラスタ内でユニークな名前である。 スタンドアロン構成では、空文字列 ("") を指定する。
+ 2. Prepare the learning data
 
- 1. Jubatus Serverへの接続設定
+  StatClient send the <item_name, value> to the server side as training data, by using the push() method.
+  In this sample program, the training data are generated from a .CSV file which contains the info. of 'fruit type', 'price', 'weight', 'diameter'.
+  At first, the source data is read line by line from the .CSV file, by FileReader() and BufferedReader() (Row 32-49). Every line data is split into items by the ',' (Row 40). And then, every item, with its item_name that stored in CSV_COLUMN, are stored in to a <HashMap> fruit list (Row 42-44). 
+ 
+ 3. Data training (update the model)
 
-  Jubatus Serverへの接続を行います（26行目）。
-  Jubatus ServerのIPアドレス、Jubatus ServerのRPCポート番号、接続待機時間を設定します。
+  The training data in <HashMap> fruit is send to the server site by using the push() method (Row 46-48) for training model there. 
+ 
+ 4. Output the result
+
+  StatClient gets the different statistic results by using its methods.
+  For each type of fruits(Row 56), the program outputs its statistic results of all the items (Row 57).
+  Different methods are called (Row 58-63) in the loop above. Their contents are listed in the methods list above.
   
- 2. 学習用データの準備
-
-  StatClientでは、項目名と値をpushメソッドに与えることで、学習が行われます。
-  今回はサンプル用に作成した"フルーツの種類"・"直径"・"重さ"・"価格"の情報を持つCSVファイルを元に学習用データを作成していきます。
-  まず、学習用データの元となるCSVファイルを読み込みます。 ここでは、FileReaderとBuffererdReaderを利用して1行ずつループで読み込んで処理します（32-49行目）。 CSVファイルなので、取得した1行を’,’で分割し要素ごとに分けます（40行目）。 定義したCSVファイルの項目リスト（CSV_COLUMN）を用い、項目名と値をmapに詰めていきます（42-44行目）。
-  
- 3. データの学習（学習モデルの更新）
-
-  StatClientのpushメソッドに2.で作成したデータに項目名を付けて渡します（46-48行目）。ここでの項目名は"直径"の場合、フルーツの種類＋"dia"という形にして、"重さ"・"価格"についても同じようにpushメソッドを呼び出します。
-  
- 4. 結果の出力
-
-  StatClientの各統計分析メソッドを使用し、結果を出力します。
-  まず、フルーツの種類ごとにループをまわして（56行目）、さらに残りの項目ごとにループでまわして出力していきます（57行目）。
-  そのループ処理の中で、各統計分析メソッドを呼び出します（58-63行目）。各メソッドの内容は上記のメソッド一覧を参照してください。
-  
-
 -------------------------------------
-サンプルプログラムの実行
+Run the sample program
 -------------------------------------
 
-**［Jubatus Serverでの作業］**
+**[At Jubatus Server]**
 
- jubastatを起動します。
+ start "jubagraph" process.
  
  ::
  
   $ jubastat --configpath stat.json
  
 
-**［Jubatus Clientでの作業］**
+**[At Jubatus Client]**
 
- 必要なパッケージとJavaクライアントを用意し、実行します。
+ Get the required package and Java client ready.
  
-**［実行結果］**
+**[Output]**
 
 ::
 
@@ -222,4 +219,4 @@ The configuration information is given by the JSON unit. Here is the meaning of 
  sum : appledia 2902.0000019073486
  sdv : appledia 15.412238321876663
  …
- …（以下略）
+ …(omitted)
